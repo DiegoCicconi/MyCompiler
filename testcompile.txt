@@ -1,0 +1,28 @@
+programName
+integer Segunda2,Primera_1,_id_mal_definido;
+longint entero_largo_y_nombre_tambien;
+integer function Mad_King()
+	integer variable_de_function;
+	{
+	variable_de_function := _i2;
+	return variable_de_function;
+	}
+{
+Primera_1 := _i-32768 + _i32767; &&@NC anotacion: ultimo y primer valor dentro del rango
+Primera_1 := _i-32769 + _i32768; &&@NC anotacion: ultimo y primer valor fuera del rango
+Segunda2:= Segunda2 + 1;     && constante mal definida
+entero_largo_y_nombre_tambien := _l32767;
+var_no_declarada := _i203;
+if(Primera_1 > _i0)
+	for(Segunda2 := _i10; Segunda2 < _i0; Primera_1--){ && variables de control del for distintas
+		Segunda2 := Segunda2 + Segunda2;
+		Segunda2 := Segunda2 + Segunda2;
+		Segunda2 := Segunda2 + Segunda2;
+	}
+endif;
+print("Esto es una cadena+
+bien definida");
+print("Esto es una cadena
+mal definida"); & comentario mal definido: ya que estamos
+&& comentario bien definido
+}

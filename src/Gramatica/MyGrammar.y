@@ -56,10 +56,10 @@ import java.io.IOException;
 /* Grammar follows */
 
 program:                 	_ID declaration_sentences _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", $5.getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine());}
 									|				
 									_ID _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", $4.getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine());}
 									;
 
 declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
@@ -83,10 +83,10 @@ type:								_INTEGER 			{this.currentType = SymbolItem.ArithmeticType.INT;}
 									_LONGINTEGER 		{this.currentType = SymbolItem.ArithmeticType.LONG;}
 
 var_list:                  var_list _COMMA _ID 	{$$ = $3;
-																$$.setSymbolUse(SymbolItem.Use.VAR); 
-																$$.setArithmeticType(this.currentType);
-																if(!this.symTable.contains($$)){
-																	this.symTable.addSymbol($$);	
+																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																((SymbolItem)$$).setArithmeticType(this.currentType);
+																if(!this.symTable.contains((SymbolItem)$$)){
+																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
 																else {
 																	yyerror("Variable already declared!");
@@ -94,10 +94,10 @@ var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																notify("Found variable declaration: " + $$.toString());}
 									|
 									_ID 						{$$ = $1;
-																$$.setSymbolUse(SymbolItem.Use.VAR); 
-																$$.setArithmeticType(this.currentType);
-																if(!this.symTable.contains($$)){
-																	this.symTable.addSymbol($$);	
+																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																((SymbolItem)$$).setArithmeticType(this.currentType);
+																if(!this.symTable.contains((SymbolItem)$$)){
+																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
 																else {
 																	yyerror("Variable already declared!");
@@ -114,7 +114,7 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									|		
 									iteration  							{notify("Found Iteration sentence ", this.currentLine);}
 									|		
-									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine); this.symTable.addSymbol($$);}
+									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine); this.symTable.addSymbol((SymbolItem)$$);}
 									|		
 									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString());}
 									|
@@ -122,49 +122,60 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									;
 
 assignment:             	_ID _ASSIGN expression 	{$$ = $1;
-																	$$.setSymbolUse(SymbolItem.Use.VAR);
-																	if(!this.symTable.contains($$)){ 
+																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
+																	if(!this.symTable.contains((SymbolItem)$$)){ 
 																		yyerror("Variable not declared!");
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol($$);
+																		$$ = this.symTable.getSymbol((SymbolItem)$$);
+																		Tercet toAdd = new Assignment($1,$3,"");
+																		int index = this.terManager.addTercet(toAdd);
+																		toAdd.setIndex(index);
 																	}}
 									|
 									_ID _MINUS_ONE				{$$ = $1;
-																	$$.setSymbolUse(SymbolItem.Use.VAR); 
-																	if(!this.symTable.contains($$)){ 
+																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																	if(!this.symTable.contains((SymbolItem)$$)){ 
 																		yyerror("Variable not declared!");
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol($$);
+																		$$ = this.symTable.getSymbol((SymbolItem)$$);
 																	}}
 									;
 
-expression:             	expression _PLUS term
+expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
+																	int index = this.terManager.addTercet((Tercet)$$);
+																	((Tercet)$$).setIndex(index);}
 									|
-									expression _MINUS term
+									expression _MINUS term	{$$ = new Subtraction($1,$3,""); 
+																	int index = this.terManager.addTercet((Tercet)$$);
+																	((Tercet)$$).setIndex(index);}
 									|
-									term
+									term							{$$ = $1;}
 									;
 
-term:                      term _MULT factor
+term:                      term _MULT factor		{$$ = new Multiplication($1,$3,""); 
+																int index = this.terManager.addTercet((Tercet)$$);
+																((Tercet)$$).setIndex(index);}
 									|
-									term _DIV factor
+									term _DIV factor		{$$ = new Division($1,$3,"");
+																int index = this.terManager.addTercet((Tercet)$$);
+																((Tercet)$$).setIndex(index);}
 									|
-									factor
+									factor					{$$ = $1;}
 									;
 
-factor:                    _ID 						{$$ = $1; $$.setSymbolUse(SymbolItem.Use.VAR); 
-																if(!this.symTable.contains($$)){ yyerror("Variable not declared!");}}
+factor:                    _ID 						{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
 									|
-									constant					{$$ = $1; $$.setSymbolUse(SymbolItem.Use.CONST); 
-																$$.setArithmeticType(this.currentType);
-																this.symTable.addSymbol($$);}
+									constant					{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
+																((SymbolItem)$$).setArithmeticType(this.currentType);
+																this.symTable.addSymbol((SymbolItem)$$);}
 									|
 									_INTTOLONG _LPAREN expression _RPAREN
 									|
-									_ID _MINUS_ONE			{$$ = $1; $$.setSymbolUse(SymbolItem.Use.VAR); 
-																if(!this.symTable.contains($$)){ yyerror("Variable not declared!");}}
+									_ID _MINUS_ONE			{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
 									;
 
 constant:                  _INT 					{this.currentType = SymbolItem.ArithmeticType.INT;}
@@ -172,17 +183,17 @@ constant:                  _INT 					{this.currentType = SymbolItem.ArithmeticTy
 									_LONGINT 			{this.currentType = SymbolItem.ArithmeticType.LONG;}
 									;
 
-selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.currentLine = $1.getToken().getLine();}
+selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|
-									_IF _LPAREN condition _RPAREN sentence_block else_section _ENDIF 	{this.currentLine = $1.getToken().getLine();}
+									_IF _LPAREN condition _RPAREN sentence_block else_section _ENDIF 	{this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|
-									_IF _LPAREN condition _RPAREN sentence_block else_section error 	{this.currentLine = $1.getToken().getLine(); 
+									_IF _LPAREN condition _RPAREN sentence_block else_section error 	{this.currentLine = ((SymbolItem)$1).getToken().getLine(); 
 																															yyerror("Expected endif;");}
 									|
-									_IF _LPAREN condition error 													{this.currentLine = $1.getToken().getLine();
+									_IF _LPAREN condition error 													{this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																															yyerror("Expected ')'", this.currentLine);}
 									|
-									_IF _LPAREN condition _RPAREN error 										{this.currentLine = $1.getToken().getLine();
+									_IF _LPAREN condition _RPAREN error 										{this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																															yyerror("Wrong if statement, sentence(s) expected");}
 									;
 
@@ -218,10 +229,10 @@ sentence_block:     			_LCBRACE executable_sentences _RCBRACE
 
 iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN 
 									sentence_block	
-									{this.currentLine = $1.getToken().getLine(); checkControlVars($3,$9);}
+									{this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$9);}
 									|
 									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _MINUS_ONE _RPAREN sentence_block 
-									{this.currentLine = $1.getToken().getLine(); checkControlVars($3,$9);}
+									{this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$9);}
 									|
 									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN error {yyerror("Missing 'for' body.");}
 									|
@@ -233,7 +244,7 @@ iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condit
 									;
 
 print:                     _PRINT _LPAREN _STRING _RPAREN 			
-									{$$ = $3; $$.setSymbolUse(SymbolItem.Use.STR); this.currentLine = $1.getToken().getLine();}
+									{$$ = $3; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									;
 
 parameter:						_FUNCTION _ID
@@ -269,11 +280,11 @@ function_body:					declaration_sentences function_sentence_block
 									;
 
 function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ = $3;
-																													$$.setSymbolUse(SymbolItem.Use.FUNC);
-																													$$.setArithmeticType(this.currentType);
-																													this.currentLine = $2.getToken().getLine();
-																													if(!this.symTable.contains($$)){
-																														this.symTable.addSymbol($$);
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
+																													if(!this.symTable.contains((SymbolItem)$$)){
+																														this.symTable.addSymbol((SymbolItem)$$);
 																													}
 																													else{
 																														yyerror("Function name already used!", this.currentLine);
@@ -281,11 +292,11 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 																													notify("Found function declaration: " + $$.toString(), currentLine);}
 									|
 									type _FUNCTION _ID _LPAREN _RPAREN 	function_body				{$$ = $3;
-																													$$.setSymbolUse(SymbolItem.Use.FUNC);
-																													$$.setArithmeticType(this.currentType);
-																													this.currentLine = $2.getToken().getLine();
-																													if(!this.symTable.contains($$)){
-																														this.symTable.addSymbol($$);
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
+																													if(!this.symTable.contains((SymbolItem)$$)){
+																														this.symTable.addSymbol((SymbolItem)$$);
 																													}
 																													else{
 																														yyerror("Function name already used!", this.currentLine);
@@ -296,10 +307,10 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 									|
 									type _FUNCTION _ID _LPAREN _RPAREN error 							{yyerror("Missing function body.");}
 									|
-									_FUNCTION _ID 	_LPAREN parameter _RPAREN 	function_body		{this.currentLine = $1.getToken().getLine();
+									_FUNCTION _ID 	_LPAREN parameter _RPAREN 	function_body		{this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																													yyerror("Missing function type", this.currentLine);}
 									|
-									_FUNCTION _ID 	_LPAREN _RPAREN 	function_body					{this.currentLine = $1.getToken().getLine();
+									_FUNCTION _ID 	_LPAREN _RPAREN 	function_body					{this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																													yyerror("Missing function type", this.currentLine);}
 									;
 
@@ -309,6 +320,7 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 
 LexicalAnalyzer lexAnalyzer;
 SymbolsTable symTable;
+TercetManager terManager;
 Logger syntaxLog;
 Logger syntaxErrLog;
 Logger tokensLog;
@@ -362,9 +374,10 @@ public Logger getTokensLog(){
     return this.tokensLog;
 }
 
-public Parser(LexicalAnalyzer la, SymbolsTable st){
+public Parser(LexicalAnalyzer la, SymbolsTable st, TercetManager tm){
 	this.lexAnalyzer = la;
 	this.symTable = st;
+	this.terManager = tm;
 	this.syntaxLog = new Logger("SYNTAX");
 	this.syntaxErrLog = new Logger("SYNTAX ERROR");
 	this.tokensLog = new Logger("TOKENS");

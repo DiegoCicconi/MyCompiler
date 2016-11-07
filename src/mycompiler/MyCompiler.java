@@ -15,18 +15,18 @@ public class MyCompiler {
             filePath = (String)args[0];
         MyReader myReader = new MyReader(filePath);
         LexicalAnalyzer la = new LexicalAnalyzer(myReader, st);
-        
-        Parser p = new Parser(la,st);
+        TercetManager tm = new TercetManager();
+        Parser p = new Parser(la,st,tm);
         p.Run();
-        p.getTokensLog().printLogs();
+        //p.getTokensLog().printLogs();
         System.out.println("--------------------------------------");
-        p.getSyntaxStructures().printLogs();
+        //p.getSyntaxStructures().printLogs();
         System.out.println("--------------------------------------");
-        la.getWarnings().printLogs();
+        //la.getWarnings().printLogs();
         System.out.println("--------------------------------------");
-        la.getErrors().printLogs();
+        //la.getErrors().printLogs();
         System.out.println("--------------------------------------");
-        p.getErrors().printLogs();
+        //p.getErrors().printLogs();
         System.out.println("--------------------------------------");
         st.printTable();
     }

@@ -2,7 +2,7 @@ package mycompiler;
 
 import java.util.Objects;
 
-public class SymbolItem {
+public class SymbolItem extends Referenceable{
     
     private final Token token;
     public enum ArithmeticType {
@@ -27,21 +27,22 @@ public class SymbolItem {
         this.arithmeticType = at;
         this.symbolUse = su;
     }
-    public void setSymbolUse(Use su){
-        this.symbolUse = su;
-    }
-    public Use getSymbolUse(){
-        return this.symbolUse;
-    }
-    public void setArithmeticType(ArithmeticType at){
-        this.arithmeticType = at;
-    }
-    public ArithmeticType getArithmeticType(){
-        return this.arithmeticType;
-    }
+    public void setSymbolUse(Use su){this.symbolUse = su;}
+    
+    public Use getSymbolUse(){return this.symbolUse;}
+    
+    public void setArithmeticType(ArithmeticType at){this.arithmeticType = at;}
+    
+    public ArithmeticType getArithmeticType(){return this.arithmeticType;}
+    
     public Token getToken(){return this.token;}
+    
+    public String toStringExtended(){
+        return this.arithmeticType + " " + this.symbolUse + " " + this.token.getLex();
+    }
+    
     @Override
-    public String toString(){return this.arithmeticType + " " + this.symbolUse + " " + this.token.getLex();}
+    public String toString(){return " " + this.token.getLex();}
     @Override
     public int hashCode(){
         return this.token.hashCode() * Objects.hashCode(this.symbolUse);

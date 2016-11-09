@@ -31,9 +31,13 @@ public class SymbolItem extends Referenceable{
     
     public Use getSymbolUse(){return this.symbolUse;}
     
+    @Override
     public void setArithmeticType(ArithmeticType at){this.arithmeticType = at;}
     
+    @Override
     public ArithmeticType getArithmeticType(){return this.arithmeticType;}
+    @Override
+    public int getLine(){return this.token.getLine();}
     
     public Token getToken(){return this.token;}
     

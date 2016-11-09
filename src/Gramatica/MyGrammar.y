@@ -56,10 +56,10 @@ import java.io.IOException;
 /* Grammar follows */
 
 program:                 	_ID declaration_sentences _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine() + 1);}
 									|				
 									_ID _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine() + 1);}
 									;
 
 declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
@@ -69,8 +69,12 @@ declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
 									type_var_list _SEMICOLON 
 									|
 									function
+									|
+									_ALLOW _INTEGER _TO _LONGINTEGER { this.terManager.enableConversion();}
 									|	
-									sentence 			{yyerror("Sentences can't be used in the declarative portion of the code!");}
+									_ALLOW error 							{ yyerror("Conversion invalid");}
+									|
+									sentence 								{yyerror("Sentences can't be used in the declarative portion of the code!");}
 									;
 
 type_var_list:					type var_list
@@ -116,12 +120,12 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									|		
 									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine); this.symTable.addSymbol((SymbolItem)$$);}
 									|		
-									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString());}
+									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString(), this.currentLine);}
 									|
-									assignment _SEMICOLON _ANNOT 	{$$ = $1; notify("Found Assignment with annotation of: " + $$.toString());}
+									assignment _SEMICOLON _ANNOT 	{$$ = $1; notify("Found Assignment with annotation of: " + $$.toString(), this.currentLine);}
 									;
 
-assignment:             	_ID _ASSIGN expression 	{$$ = $1;
+assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																	if(!this.symTable.contains((SymbolItem)$$)){ 
 																		yyerror("Variable not declared!");
@@ -152,6 +156,16 @@ expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
 																	((Tercet)$$).setIndex(index);}
 									|
 									term							{$$ = $1;}
+
+									|
+									_INTTOLONG _LPAREN expression _RPAREN
+																	{$$ = $3; 
+																	if(terManager.conversionAllowed()){
+																		$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);}
+																	}
+																	else{
+																		terManager.getLog().addLog("Conversion not allowed");
+																	}
 									;
 
 term:                      term _MULT factor		{$$ = new Multiplication($1,$3,""); 
@@ -171,8 +185,6 @@ factor:                    _ID 						{$$ = $1; ((SymbolItem)$$).setSymbolUse(Sym
 									constant					{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
 																this.symTable.addSymbol((SymbolItem)$$);}
-									|
-									_INTTOLONG _LPAREN expression _RPAREN
 									|
 									_ID _MINUS_ONE			{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
@@ -227,8 +239,7 @@ sentence_block:     			_LCBRACE executable_sentences _RCBRACE
 									_LCBRACE executable_sentences error {yyerror("Expected '}'");}
 									;
 
-iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN 
-									sentence_block	
+iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN sentence_block	
 									{this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$9);}
 									|
 									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _MINUS_ONE _RPAREN sentence_block 
@@ -245,38 +256,6 @@ iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condit
 
 print:                     _PRINT _LPAREN _STRING _RPAREN 			
 									{$$ = $3; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)$1).getToken().getLine();}
-									;
-
-parameter:						_FUNCTION _ID
-									|
-									_INTEGER _ID
-									|
-									_LONGINT _ID
-									;
-
-return_sentence:				_RETURN expression _SEMICOLON
-									|
-									_RETURN expression error {yyerror("Expected ';' after return statement");}
-									|
-									_RETURN error {yyerror("Expected something to return");}
-									;
-
-function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE
-									|
-									_LCBRACE return_sentence _RCBRACE
-									|
-									_LCBRACE error {yyerror("Expected sentence or return sentence.");}
-									|
-									_LCBRACE executable_sentences error {yyerror("Expected return sentence.");}
-									|
-									_LCBRACE executable_sentences return_sentence error {yyerror("Expected '}'.");}
-									|
-									_LCBRACE return_sentence {yyerror("Expected '}'.");}
-									;
-
-function_body:					declaration_sentences function_sentence_block 
-									|
-									function_sentence_block 
 									;
 
 function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ = $3;
@@ -314,7 +293,37 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 																													yyerror("Missing function type", this.currentLine);}
 									;
 
+parameter:						_FUNCTION _ID
+									|
+									_INTEGER _ID
+									|
+									_LONGINTEGER _ID
+									;
 
+function_body:					declaration_sentences function_sentence_block 
+									|
+									function_sentence_block 
+									;
+
+function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE
+									|
+									_LCBRACE return_sentence _RCBRACE
+									|
+									_LCBRACE error {yyerror("Expected sentence or return sentence.");}
+									|
+									_LCBRACE executable_sentences error {yyerror("Expected return sentence.");}
+									|
+									_LCBRACE executable_sentences return_sentence error {yyerror("Expected '}'.");}
+									|
+									_LCBRACE return_sentence {yyerror("Expected '}'.");}
+									;
+
+return_sentence:				_RETURN expression _SEMICOLON
+									|
+									_RETURN expression error {yyerror("Expected ';' after return statement");}
+									|
+									_RETURN error {yyerror("Expected something to return");}
+									;
 
 %%
 

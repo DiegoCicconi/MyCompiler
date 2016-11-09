@@ -7,7 +7,6 @@ public class Tercet extends Referenceable {
     protected String operation = "";
     protected Referenceable operand1;
     protected Referenceable operand2;
-    protected SymbolItem.ArithmeticType type = SymbolItem.ArithmeticType.NOT_DEF;
     protected int index = -1;
     public Tercet(Referenceable op1, Referenceable op2, String sc){
         this.operand1 = op1;
@@ -22,6 +21,9 @@ public class Tercet extends Referenceable {
     public String toString(){
         return "[" + this.index +  "]";
     }
+    @Override
+    public int getLine(){return this.operand1.getLine();}
+    
     public String printTercet(){
         return this.index + " (" + this.operation + " ," + operand1.toString() + "," + operand2.toString() + ")";
     }
@@ -32,7 +34,6 @@ public class Tercet extends Referenceable {
         hash = 89 * hash + Objects.hashCode(this.operation);
         hash = 89 * hash + Objects.hashCode(this.operand1);
         hash = 89 * hash + Objects.hashCode(this.operand2);
-        hash = 89 * hash + Objects.hashCode(this.type);
         return hash;
     }
 }

@@ -23,7 +23,6 @@ public class Logger {
         }
     }
     public void addLog(String log, int line){
-        line++;
         logs.add(log + " at line " + line);
     }
 }

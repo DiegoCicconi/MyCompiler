@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class MyReader {
     private int currentIndex;
-    private int line = 0;
+    private int line = 1;
     private BufferedReader buffRdr;   
     private final String fileName;
     private String currentLine;

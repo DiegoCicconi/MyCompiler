@@ -1,9 +1,19 @@
 package mycompiler;
 
 public class Referenceable {
+    protected String scope = new String();
     public Referenceable(){
     }
+    public void setScope(String sc){
+        this.scope = sc;
+    }
+    public String getScope(){
+        return this.scope;
+    }
     public String toString(){
+        return "";
+    }
+    public String getLex(){
         return "";
     }
     public int getLine(){

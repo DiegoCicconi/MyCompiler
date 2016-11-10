@@ -3,7 +3,6 @@ package mycompiler;
 import java.util.Objects;
 
 public class Tercet extends Referenceable {
-    protected String scope;
     protected String operation = "";
     protected Referenceable operand1;
     protected Referenceable operand2;

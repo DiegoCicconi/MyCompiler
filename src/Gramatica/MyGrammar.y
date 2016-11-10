@@ -55,10 +55,12 @@ import java.io.IOException;
 %%
 /* Grammar follows */
 
-program:                 	_ID declaration_sentences _LCBRACE executable_sentences _RCBRACE 
+program:                 	_ID {this.currentScope = new Scope($1.getLex());}
+									declaration_sentences _LCBRACE executable_sentences _RCBRACE 
 									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine() + 1);}
 									|				
-									_ID _LCBRACE executable_sentences _RCBRACE 
+									_ID {this.currentScope = new Scope($1.getLex());}
+									_LCBRACE executable_sentences _RCBRACE 
 									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine() + 1);}
 									;
 
@@ -70,9 +72,9 @@ declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
 									|
 									function
 									|
-									_ALLOW _INTEGER _TO _LONGINTEGER { this.terManager.enableConversion();}
+									_ALLOW _INTEGER _TO _LONGINTEGER {this.terManager.enableConversion();}
 									|	
-									_ALLOW error 							{ yyerror("Conversion invalid");}
+									_ALLOW error 							{yyerror("Conversion invalid");}
 									|
 									sentence 								{yyerror("Sentences can't be used in the declarative portion of the code!");}
 									;
@@ -89,6 +91,7 @@ type:								_INTEGER 			{this.currentType = SymbolItem.ArithmeticType.INT;}
 var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){
 																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
@@ -100,6 +103,7 @@ var_list:                  var_list _COMMA _ID 	{$$ = $3;
 									_ID 						{$$ = $1;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){
 																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
@@ -127,11 +131,13 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 
 assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
-																	if(!this.symTable.contains((SymbolItem)$$)){ 
+																	((SymbolItem)$$).setScope(this.currentScope.getScope());
+																	SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																	if(variable == null){ 
 																		yyerror("Variable not declared!");
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol((SymbolItem)$$);
+																		$$ = variable;
 																		Tercet toAdd = new Assignment($1,$3,"");
 																		int index = this.terManager.addTercet(toAdd);
 																		toAdd.setIndex(index);
@@ -139,11 +145,13 @@ assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((
 									|
 									_ID _MINUS_ONE				{$$ = $1;
 																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
-																	if(!this.symTable.contains((SymbolItem)$$)){ 
+																	((SymbolItem)$$).setScope(this.currentScope.getScope());
+																	SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																	if(variable == null){ 
 																		yyerror("Variable not declared!");
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol((SymbolItem)$$);
+																		$$ = variable;
 																	}}
 									;
 
@@ -161,11 +169,11 @@ expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
 									_INTTOLONG _LPAREN expression _RPAREN
 																	{$$ = $3; 
 																	if(terManager.conversionAllowed()){
-																		$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);}
+																		$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);
 																	}
 																	else{
-																		terManager.getLog().addLog("Conversion not allowed");
-																	}
+																		terManager.getLog().addLog("Conversion not allowed", ((SymbolItem)$1).getToken().getLine());
+																	}}
 									;
 
 term:                      term _MULT factor		{$$ = new Multiplication($1,$3,""); 
@@ -258,9 +266,12 @@ print:                     _PRINT _LPAREN _STRING _RPAREN
 									{$$ = $3; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									;
 
-function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ = $3;
+function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
+																								function_body 	{$$ = $3;
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
 																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
 																													if(!this.symTable.contains((SymbolItem)$$)){
 																														this.symTable.addSymbol((SymbolItem)$$);
@@ -270,9 +281,12 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 																													}
 																													notify("Found function declaration: " + $$.toString(), currentLine);}
 									|
-									type _FUNCTION _ID _LPAREN _RPAREN 	function_body				{$$ = $3;
+									type _FUNCTION _ID _LPAREN _RPAREN									{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
+															 						function_body				{$$ = $3;
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
 																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
 																													if(!this.symTable.contains((SymbolItem)$$)){
 																														this.symTable.addSymbol((SymbolItem)$$);
@@ -309,20 +323,20 @@ function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRAC
 									|
 									_LCBRACE return_sentence _RCBRACE
 									|
-									_LCBRACE error {yyerror("Expected sentence or return sentence.");}
+									_LCBRACE error 													{yyerror("Expected sentence or return sentence.");}
 									|
-									_LCBRACE executable_sentences error {yyerror("Expected return sentence.");}
+									_LCBRACE executable_sentences error 						{yyerror("Expected return sentence.");}
 									|
-									_LCBRACE executable_sentences return_sentence error {yyerror("Expected '}'.");}
+									_LCBRACE executable_sentences return_sentence error 	{yyerror("Expected '}'.");}
 									|
-									_LCBRACE return_sentence {yyerror("Expected '}'.");}
+									_LCBRACE return_sentence 										{yyerror("Expected '}'.");}
 									;
 
 return_sentence:				_RETURN expression _SEMICOLON
 									|
-									_RETURN expression error {yyerror("Expected ';' after return statement");}
+									_RETURN expression error 				{yyerror("Expected ';' after return statement");}
 									|
-									_RETURN error {yyerror("Expected something to return");}
+									_RETURN error 								{yyerror("Expected something to return");}
 									;
 
 %%
@@ -334,8 +348,9 @@ Logger syntaxLog;
 Logger syntaxErrLog;
 Logger tokensLog;
 Token currentToken;
-SymbolItem.ArithmeticType currentType;
 int currentLine;
+SymbolItem.ArithmeticType currentType;
+Scope currentScope;
 
 public void notify(String msg){
 	this.syntaxLog.addLog(msg, lexAnalyzer.getLineNumber());

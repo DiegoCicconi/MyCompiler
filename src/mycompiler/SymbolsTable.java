@@ -1,5 +1,6 @@
 package mycompiler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -18,21 +19,35 @@ public class SymbolsTable {
         return this.tableOfSymbols.containsKey(st.hashCode());
     }
     public SymbolItem getSymbol(SymbolItem st){
-        if(this.tableOfSymbols.containsKey(st.hashCode()))
-            return this.tableOfSymbols.get(st.hashCode());
-        else 
-            return null;
+        ArrayList<Integer> codes = st.hashCodes();
+        if(codes != null){
+            for(int i = 0; i < codes.size(); i++){
+                if(this.tableOfSymbols.containsKey(codes.get(i)))
+                    return this.tableOfSymbols.get(codes.get(i));
+            }
+        }
+        else{
+            return null; 
+        }
+        return null;
     }
+    
     public void printTable(){
         System.out.println("----------SYMBOLS TABLE----------");
         System.out.println("Type----------idType---------Name");
-        Collection<SymbolItem> aux = this.tableOfSymbols.values();
-        for(SymbolItem si: aux){
-            Token toPrint = si.getToken();
-            System.out.println(si.getArithmeticType() + "           " + si.getSymbolUse() + "            " + toPrint.getLex());
-        }
-        
-        
+        Collection<SymbolItem> valuesCollection = this.tableOfSymbols.values();
+        for(SymbolItem si: valuesCollection){
+            String print = "" + si.getArithmeticType();
+            while(print.length() < 15){
+                print+="_";
+            }
+            print += si.getSymbolUse();
+            while(print.length() < 30){
+                print+="_";
+            }
+            print += si.getScopedName();
+            System.out.println(print);
+        }   
     }
     
 }

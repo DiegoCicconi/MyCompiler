@@ -67,7 +67,7 @@ public class SymbolItem extends Referenceable{
     }
     public ArrayList<Integer> hashCodes(){
         ArrayList<Integer> codes = new ArrayList<>();
-        String upperScope = this.scope;
+        String upperScope = new String(this.scope);
         codes.add(this.hashCode());
         if(this.scope.length() > 0 ){
             while((upperScope.lastIndexOf("@") != 0)){

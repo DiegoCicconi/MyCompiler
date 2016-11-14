@@ -26,8 +26,9 @@ public class MyCompiler {
         System.out.println("--------------------------------------");
         //la.getErrors().printLogs();
         System.out.println("--------------------------------------");
-        //p.getErrors().printLogs();
+        p.getErrors().printLogs();
         System.out.println("--------------------------------------");
+        tm.printTercets();
         st.printTable();
     }
     

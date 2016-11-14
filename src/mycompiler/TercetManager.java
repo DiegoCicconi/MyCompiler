@@ -18,6 +18,9 @@ public class TercetManager {
         this.tercets.add(t);
         return this.tercets.lastIndexOf(t);
     }
+    public int getNextIndex(){
+        return this.tercets.size();
+    }
     public void enableConversion(){
         TercetManager.conversionAllowance = true;
     }
@@ -26,5 +29,10 @@ public class TercetManager {
     }
     public static boolean conversionAllowed(){
         return TercetManager.conversionAllowance;
+    }
+    public void printTercets(){
+        for (Tercet tercet : tercets) {
+            System.out.println(tercet.printTercet());
+        }
     }
 }

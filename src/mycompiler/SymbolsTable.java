@@ -20,15 +20,10 @@ public class SymbolsTable {
     }
     public SymbolItem getSymbol(SymbolItem st){
         ArrayList<Integer> codes = st.hashCodes();
-        if(codes != null){
             for(int i = 0; i < codes.size(); i++){
                 if(this.tableOfSymbols.containsKey(codes.get(i)))
                     return this.tableOfSymbols.get(codes.get(i));
             }
-        }
-        else{
-            return null; 
-        }
         return null;
     }
     

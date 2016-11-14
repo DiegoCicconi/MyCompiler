@@ -14,7 +14,6 @@ public class Tercet extends Referenceable {
     }
     public void setIndex(int i){
         this.index = i;
-        System.out.println(this.printTercet());
     }
     @Override
     public String toString(){

@@ -3,6 +3,8 @@
 package mycompiler;
 
 import java.io.IOException;
+import java.util.Stack;
+import java.util.LinkedList;
 
 %}
 
@@ -55,11 +57,13 @@ import java.io.IOException;
 %%
 /* Grammar follows */
 
-program:                 	_ID declaration_sentences _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine());}
+program:                 	_ID {this.currentScope = new Scope($1.getLex());}
+									declaration_sentences _LCBRACE executable_sentences _RCBRACE 
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine() + 1);}
 									|				
-									_ID _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine());}
+									_ID {this.currentScope = new Scope($1.getLex());}
+									_LCBRACE executable_sentences _RCBRACE 
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine() + 1);}
 									;
 
 declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
@@ -69,8 +73,12 @@ declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
 									type_var_list _SEMICOLON 
 									|
 									function
+									|
+									_ALLOW _INTEGER _TO _LONGINTEGER {this.terManager.enableConversion();}
 									|	
-									sentence 			{yyerror("Sentences can't be used in the declarative portion of the code!");}
+									_ALLOW error 							{yyerror("Conversion invalid");}
+									|
+									sentence 								{yyerror("Sentences can't be used in the declarative portion of the code!");}
 									;
 
 type_var_list:					type var_list
@@ -85,6 +93,7 @@ type:								_INTEGER 			{this.currentType = SymbolItem.ArithmeticType.INT;}
 var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){
 																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
@@ -96,6 +105,7 @@ var_list:                  var_list _COMMA _ID 	{$$ = $3;
 									_ID 						{$$ = $1;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){
 																	this.symTable.addSymbol((SymbolItem)$$);	
 																}
@@ -116,76 +126,87 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									|		
 									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine); this.symTable.addSymbol((SymbolItem)$$);}
 									|		
-									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString());}
+									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString(), this.currentLine);}
 									|
-									assignment _SEMICOLON _ANNOT 	{$$ = $1; notify("Found Assignment with annotation of: " + $$.toString());}
+									assignment _SEMICOLON _ANNOT 	{$$ = $1; notify("Found Assignment with annotation of: " + $$.toString(), this.currentLine);}
 									;
 
-assignment:             	_ID _ASSIGN expression 	{$$ = $1;
+assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
-																	if(!this.symTable.contains((SymbolItem)$$)){ 
-																		yyerror("Variable not declared!");
+																	((SymbolItem)$$).setScope(this.currentScope.getScope());
+																	SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																	if(variable == null){ 
+																		yyerror("Variable not declared!" , this.currentLine);
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol((SymbolItem)$$);
+																		$$ = variable;
 																		Tercet toAdd = new Assignment($1,$3,"");
-																		int index = this.terManager.addTercet(toAdd);
-																		toAdd.setIndex(index);
+																		toAdd.setIndex(this.terManager.addTercet(toAdd));
 																	}}
 									|
-									_ID _MINUS_ONE				{$$ = $1;
+									_ID _MINUS_ONE				{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
-																	if(!this.symTable.contains((SymbolItem)$$)){ 
-																		yyerror("Variable not declared!");
+																	((SymbolItem)$$).setScope(this.currentScope.getScope());
+																	SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																	if(variable == null){ 
+																		yyerror("Variable not declared!", this.currentLine);
 																	}
 																	else {
-																		$$ = this.symTable.getSymbol((SymbolItem)$$);
+																		$$ = variable;
 																	}}
 									;
 
 expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
-																	int index = this.terManager.addTercet((Tercet)$$);
-																	((Tercet)$$).setIndex(index);}
+																	((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));}
 									|
-									expression _MINUS term	{$$ = new Subtraction($1,$3,""); 
-																	int index = this.terManager.addTercet((Tercet)$$);
-																	((Tercet)$$).setIndex(index);}
+									expression _MINUS term	{$$ = new Subtraction($1,$3,"");
+																	((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));}
 									|
 									term							{$$ = $1;}
+
+									|
+									_INTTOLONG _LPAREN expression _RPAREN
+																	{$$ = $3; 
+																	if(terManager.conversionAllowed()){
+																		$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);
+																	}
+																	else{
+																		terManager.getLog().addLog("Conversion not allowed", ((SymbolItem)$1).getToken().getLine());
+																	}}
 									;
 
-term:                      term _MULT factor		{$$ = new Multiplication($1,$3,""); 
-																int index = this.terManager.addTercet((Tercet)$$);
-																((Tercet)$$).setIndex(index);}
+term:                      term _MULT factor		{$$ = new Multiplication($1,$3,"");
+																((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));}
 									|
 									term _DIV factor		{$$ = new Division($1,$3,"");
-																int index = this.terManager.addTercet((Tercet)$$);
-																((Tercet)$$).setIndex(index);}
+																((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));}
 									|
 									factor					{$$ = $1;}
 									;
 
 factor:                    _ID 						{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
 									|
 									constant					{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
 																this.symTable.addSymbol((SymbolItem)$$);}
 									|
-									_INTTOLONG _LPAREN expression _RPAREN
-									|
 									_ID _MINUS_ONE			{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
 									;
 
-constant:                  _INT 					{this.currentType = SymbolItem.ArithmeticType.INT;}
+constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticType.INT;}
 									|
-									_LONGINT 			{this.currentType = SymbolItem.ArithmeticType.LONG;}
+									_LONGINT 				{this.currentType = SymbolItem.ArithmeticType.LONG;}
 									;
 
-selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.currentLine = ((SymbolItem)$1).getToken().getLine();}
+selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
+																															this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|
-									_IF _LPAREN condition _RPAREN sentence_block else_section _ENDIF 	{this.currentLine = ((SymbolItem)$1).getToken().getLine();}
+									_IF _LPAREN condition _RPAREN sentence_block else_section _ENDIF 	{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
+																															this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|
 									_IF _LPAREN condition _RPAREN sentence_block else_section error 	{this.currentLine = ((SymbolItem)$1).getToken().getLine(); 
 																															yyerror("Expected endif;");}
@@ -197,27 +218,38 @@ selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF		
 																															yyerror("Wrong if statement, sentence(s) expected");}
 									;
 
-else_section:              _ELSE sentence_block
+else_section:              								
+									_ELSE 
+																	{Tercet newBU = new BranchUnconditional(null,null,this.currentScope.getScope());
+																	newBU.setIndex(this.terManager.addTercet(newBU));
+																	this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
+																	this.conditionSTK.push((JumpTercet)newBU);}
+											sentence_block
 									|
-									_ELSE error 	{yyerror("Wrong else statement, sentence(s) expected");}
+									_ELSE error 				{yyerror("Wrong else statement, sentence(s) expected");}
 									;
 
-condition:                	expression comparator expression
-                           ;
+condition:                	expression comparator expression		{Tercet newComp = new Comparator(((SymbolItem)$2).getLex(),$1,$3,this.currentScope.getScope());
+																					newComp.setIndex(this.terManager.addTercet(newComp));
+																					$$ = newComp;
+																					Tercet newBF = new BranchFalse(newComp,null,this.currentScope.getScope());
+																					newBF.setIndex(this.terManager.addTercet(newBF));
+																					this.conditionSTK.push((JumpTercet)newBF);}
+                          	;
 
-comparator:             	_LESSER
+comparator:             	_LESSER 						{$$ = $1;}
 									|
-									_GREATER
+									_GREATER 					{$$ = $1;}
 									|
-									_LESSER_OR_EQUAL
+									_LESSER_OR_EQUAL 			{$$ = $1;}
 									|
-									_GREATER_OR_EQUAL
+									_GREATER_OR_EQUAL 		{$$ = $1;}
 									|
-									_EQUAL
+									_EQUAL 						{$$ = $1;}
 									|
-									_UNEQUAL
+									_UNEQUAL 					{$$ = $1;}
 									|
-									error 			{yyerror("Invalid operator, comparator expected");}
+									error 						{yyerror("Invalid operator, comparator expected");}
 									;
 
 sentence_block:     			_LCBRACE executable_sentences _RCBRACE
@@ -227,61 +259,73 @@ sentence_block:     			_LCBRACE executable_sentences _RCBRACE
 									_LCBRACE executable_sentences error {yyerror("Expected '}'");}
 									;
 
-iteration:                 _FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN 
-									sentence_block	
-									{this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$9);}
+iteration:                 _FOR _LPAREN assignment _SEMICOLON 															{this.iterationJumpDir = this.terManager.getNextIndex();}
+																					condition _SEMICOLON increment _RPAREN sentence_block	
+									{Tercet incTer = this.incrementTercets.pollFirst();
+									incTer.setIndex(this.terManager.addTercet(incTer));
+										while(!this.incrementTercets.isEmpty()){
+											incTer = this.incrementTercets.pollFirst();
+											incTer.setIndex(this.terManager.addTercet(incTer));
+										}
+									Tercet newBU = new BranchUnconditional(null,null,this.currentScope.getScope());
+									newBU.setIndex(this.terManager.addTercet(newBU));
+									((JumpTercet)newBU).setJumpDir(this.iterationJumpDir);
+									this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
+									this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$7);}
 									|
-									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _MINUS_ONE _RPAREN sentence_block 
-									{this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$9);}
-									|
-									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _ASSIGN expression _RPAREN error {yyerror("Missing 'for' body.");}
-									|
-									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON condition _SEMICOLON _ID _MINUS_ONE _RPAREN error {yyerror("Missing 'for' body.");}
-									|
-									_FOR _LPAREN _ID _ASSIGN expression _SEMICOLON error {yyerror("Missing condition.");}
+									_FOR _LPAREN assignment _SEMICOLON error {yyerror("Missing condition.");}
 									|
 									_FOR _LPAREN error {yyerror("Missing assignment. What were you planning on iterating on?");}
+									;
+
+increment:						_ID _ASSIGN for_expression	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
+																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
+																		((SymbolItem)$$).setScope(this.currentScope.getScope());
+																		SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																		if(variable == null){ 
+																			yyerror("For Variable not declared!");
+																		}
+																		else {
+																			$$ = variable;
+																			this.incrementTercets.addLast(new Assignment($1,$3,""));
+																		}}
+									|
+									_ID _MINUS_ONE					{$$ = $1;
+																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																		((SymbolItem)$$).setScope(this.currentScope.getScope());
+																		SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																		if(variable == null){ 
+																			yyerror("For Variable not declared!");
+																		}
+																		else {
+																			$$ = variable;
+																			//Linea de creacion del -- estilo this.incrementTercet = new Assignment($1,$3,"");
+																		}}
+									;
+
+for_expression: 				for_expression _PLUS for_expression		{this.incrementTercets.addLast(new Addition($1,$3,""));}
+									|
+									for_expression _MINUS for_expression	{this.incrementTercets.addLast(new Subtraction($1,$3,""));}
+									|
+									_ID 											{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+																					((SymbolItem)$$).setScope(this.currentScope.getScope());
+																					if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
+									|
+									constant										{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
+																					((SymbolItem)$$).setArithmeticType(this.currentType);
+																					this.symTable.addSymbol((SymbolItem)$$);}
 									;
 
 print:                     _PRINT _LPAREN _STRING _RPAREN 			
 									{$$ = $3; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									;
 
-parameter:						_FUNCTION _ID
-									|
-									_INTEGER _ID
-									|
-									_LONGINT _ID
-									;
-
-return_sentence:				_RETURN expression _SEMICOLON
-									|
-									_RETURN expression error {yyerror("Expected ';' after return statement");}
-									|
-									_RETURN error {yyerror("Expected something to return");}
-									;
-
-function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE
-									|
-									_LCBRACE return_sentence _RCBRACE
-									|
-									_LCBRACE error {yyerror("Expected sentence or return sentence.");}
-									|
-									_LCBRACE executable_sentences error {yyerror("Expected return sentence.");}
-									|
-									_LCBRACE executable_sentences return_sentence error {yyerror("Expected '}'.");}
-									|
-									_LCBRACE return_sentence {yyerror("Expected '}'.");}
-									;
-
-function_body:					declaration_sentences function_sentence_block 
-									|
-									function_sentence_block 
-									;
-
-function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ = $3;
+function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
+																								function_body 	{$$ = $3;
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
 																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
 																													if(!this.symTable.contains((SymbolItem)$$)){
 																														this.symTable.addSymbol((SymbolItem)$$);
@@ -291,9 +335,12 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 																													}
 																													notify("Found function declaration: " + $$.toString(), currentLine);}
 									|
-									type _FUNCTION _ID _LPAREN _RPAREN 	function_body				{$$ = $3;
+									type _FUNCTION _ID _LPAREN _RPAREN									{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
+															 						function_body				{$$ = $3;
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
 																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
 																													if(!this.symTable.contains((SymbolItem)$$)){
 																														this.symTable.addSymbol((SymbolItem)$$);
@@ -314,7 +361,37 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN	function_body 	{$$ =
 																													yyerror("Missing function type", this.currentLine);}
 									;
 
+parameter:						_FUNCTION _ID
+									|
+									_INTEGER _ID
+									|
+									_LONGINTEGER _ID
+									;
 
+function_body:					declaration_sentences function_sentence_block 
+									|
+									function_sentence_block 
+									;
+
+function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE
+									|
+									_LCBRACE return_sentence _RCBRACE
+									|
+									_LCBRACE error 													{yyerror("Expected sentence or return sentence.");}
+									|
+									_LCBRACE executable_sentences error 						{yyerror("Expected return sentence.");}
+									|
+									_LCBRACE executable_sentences return_sentence error 	{yyerror("Expected '}'.");}
+									|
+									_LCBRACE return_sentence 										{yyerror("Expected '}'.");}
+									;
+
+return_sentence:				_RETURN expression _SEMICOLON
+									|
+									_RETURN expression error 				{yyerror("Expected ';' after return statement");}
+									|
+									_RETURN error 								{yyerror("Expected something to return");}
+									;
 
 %%
 
@@ -325,8 +402,12 @@ Logger syntaxLog;
 Logger syntaxErrLog;
 Logger tokensLog;
 Token currentToken;
-SymbolItem.ArithmeticType currentType;
 int currentLine;
+SymbolItem.ArithmeticType currentType;
+Scope currentScope;
+Stack<JumpTercet> conditionSTK;
+LinkedList<Tercet> incrementTercets = new LinkedList<>();
+int iterationJumpDir;
 
 public void notify(String msg){
 	this.syntaxLog.addLog(msg, lexAnalyzer.getLineNumber());
@@ -378,6 +459,7 @@ public Parser(LexicalAnalyzer la, SymbolsTable st, TercetManager tm){
 	this.lexAnalyzer = la;
 	this.symTable = st;
 	this.terManager = tm;
+	this.conditionSTK = new Stack<JumpTercet>();
 	this.syntaxLog = new Logger("SYNTAX");
 	this.syntaxErrLog = new Logger("SYNTAX ERROR");
 	this.tokensLog = new Logger("TOKENS");

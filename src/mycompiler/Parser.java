@@ -478,7 +478,7 @@ final static String yyrule[] = {
 "return_sentence : _RETURN error",
 };
 
-//#line 397 "MyGrammar.y"
+//#line 407 "MyGrammar.y"
 
 LexicalAnalyzer lexAnalyzer;
 SymbolsTable symTable;
@@ -785,7 +785,7 @@ case 21:
 break;
 case 22:
 //#line 127 "MyGrammar.y"
-{yyval = val_peek(1); notify("Found Print sentence: " + yyval.toString(), this.currentLine); this.symTable.addSymbol((SymbolItem)yyval);}
+{yyval = val_peek(1); notify("Found Print sentence: " + yyval.toString(), this.currentLine);}
 break;
 case 23:
 //#line 129 "MyGrammar.y"
@@ -820,25 +820,26 @@ case 26:
 																		yyerror("Variable not declared!", this.currentLine);
 																	}
 																	else {
-																		yyval = variable;
+																		yyval = new Decrement(val_peek(1),null,this.currentScope.getScope());
+																		((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));
 																	}}
 break;
 case 27:
-//#line 159 "MyGrammar.y"
+//#line 160 "MyGrammar.y"
 {yyval = new Addition(val_peek(2),val_peek(0),"");
 																	((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));}
 break;
 case 28:
-//#line 162 "MyGrammar.y"
+//#line 163 "MyGrammar.y"
 {yyval = new Subtraction(val_peek(2),val_peek(0),"");
 																	((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));}
 break;
 case 29:
-//#line 165 "MyGrammar.y"
+//#line 166 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
 case 30:
-//#line 169 "MyGrammar.y"
+//#line 170 "MyGrammar.y"
 {yyval = val_peek(1); 
 																	if(terManager.conversionAllowed()){
 																		yyval.setArithmeticType(SymbolItem.ArithmeticType.LONG);
@@ -848,83 +849,86 @@ case 30:
 																	}}
 break;
 case 31:
-//#line 178 "MyGrammar.y"
+//#line 179 "MyGrammar.y"
 {yyval = new Multiplication(val_peek(2),val_peek(0),"");
 																((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));}
 break;
 case 32:
-//#line 181 "MyGrammar.y"
+//#line 182 "MyGrammar.y"
 {yyval = new Division(val_peek(2),val_peek(0),"");
 																((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));}
 break;
 case 33:
-//#line 184 "MyGrammar.y"
+//#line 185 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
 case 34:
-//#line 187 "MyGrammar.y"
+//#line 188 "MyGrammar.y"
 {yyval = val_peek(0); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)yyval).setScope(this.currentScope.getScope());
 																if(!this.symTable.contains((SymbolItem)yyval)){ yyerror("Variable not declared!");}}
 break;
 case 35:
-//#line 191 "MyGrammar.y"
+//#line 192 "MyGrammar.y"
 {yyval = val_peek(0); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.CONST); 
 																((SymbolItem)yyval).setArithmeticType(this.currentType);
 																this.symTable.addSymbol((SymbolItem)yyval);}
 break;
 case 36:
-//#line 195 "MyGrammar.y"
+//#line 196 "MyGrammar.y"
 {yyval = val_peek(1); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)yyval).setScope(this.currentScope.getScope());
-																if(!this.symTable.contains((SymbolItem)yyval)){ yyerror("Variable not declared!");}}
+																if(!this.symTable.contains((SymbolItem)yyval)){ yyerror("Variable not declared!");}
+																yyval = new Decrement(val_peek(1),null,this.currentScope.getScope());
+																((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));
+																yyval = val_peek(1);}
 break;
 case 37:
-//#line 200 "MyGrammar.y"
+//#line 204 "MyGrammar.y"
 {this.currentType = SymbolItem.ArithmeticType.INT;}
 break;
 case 38:
-//#line 202 "MyGrammar.y"
+//#line 206 "MyGrammar.y"
 {this.currentType = SymbolItem.ArithmeticType.LONG;}
 break;
 case 39:
-//#line 205 "MyGrammar.y"
+//#line 209 "MyGrammar.y"
 {this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
 																															this.currentLine = ((SymbolItem)val_peek(5)).getToken().getLine();}
 break;
 case 40:
-//#line 208 "MyGrammar.y"
+//#line 212 "MyGrammar.y"
 {this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
 																															this.currentLine = ((SymbolItem)val_peek(6)).getToken().getLine();}
 break;
 case 41:
-//#line 211 "MyGrammar.y"
+//#line 215 "MyGrammar.y"
 {this.currentLine = ((SymbolItem)val_peek(6)).getToken().getLine(); 
 																															yyerror("Expected endif;");}
 break;
 case 42:
-//#line 214 "MyGrammar.y"
+//#line 218 "MyGrammar.y"
 {this.currentLine = ((SymbolItem)val_peek(3)).getToken().getLine();
 																															yyerror("Expected ')'", this.currentLine);}
 break;
 case 43:
-//#line 217 "MyGrammar.y"
+//#line 221 "MyGrammar.y"
 {this.currentLine = ((SymbolItem)val_peek(4)).getToken().getLine();
 																															yyerror("Wrong if statement, sentence(s) expected");}
 break;
 case 44:
-//#line 223 "MyGrammar.y"
+//#line 227 "MyGrammar.y"
 {Tercet newBU = new BranchUnconditional(null,null,this.currentScope.getScope());
 																	newBU.setIndex(this.terManager.addTercet(newBU));
 																	this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
 																	this.conditionSTK.push((JumpTercet)newBU);}
 break;
 case 46:
-//#line 229 "MyGrammar.y"
+//#line 233 "MyGrammar.y"
 {yyerror("Wrong else statement, sentence(s) expected");}
 break;
 case 47:
-//#line 232 "MyGrammar.y"
+//#line 236 "MyGrammar.y"
 {Tercet newComp = new Comparator(((SymbolItem)val_peek(1)).getLex(),val_peek(2),val_peek(0),this.currentScope.getScope());
 																					newComp.setIndex(this.terManager.addTercet(newComp));
 																					yyval = newComp;
@@ -933,43 +937,43 @@ case 47:
 																					this.conditionSTK.push((JumpTercet)newBF);}
 break;
 case 48:
-//#line 240 "MyGrammar.y"
-{yyval = val_peek(0);}
-break;
-case 49:
-//#line 242 "MyGrammar.y"
-{yyval = val_peek(0);}
-break;
-case 50:
 //#line 244 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
-case 51:
+case 49:
 //#line 246 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
-case 52:
+case 50:
 //#line 248 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
-case 53:
+case 51:
 //#line 250 "MyGrammar.y"
 {yyval = val_peek(0);}
 break;
-case 54:
+case 52:
 //#line 252 "MyGrammar.y"
+{yyval = val_peek(0);}
+break;
+case 53:
+//#line 254 "MyGrammar.y"
+{yyval = val_peek(0);}
+break;
+case 54:
+//#line 256 "MyGrammar.y"
 {yyerror("Invalid operator, comparator expected");}
 break;
 case 57:
-//#line 259 "MyGrammar.y"
+//#line 263 "MyGrammar.y"
 {yyerror("Expected '}'");}
 break;
 case 58:
-//#line 262 "MyGrammar.y"
+//#line 266 "MyGrammar.y"
 {this.iterationJumpDir = this.terManager.getNextIndex();}
 break;
 case 59:
-//#line 264 "MyGrammar.y"
+//#line 268 "MyGrammar.y"
 {Tercet incTer = this.incrementTercets.pollFirst();
 									incTer.setIndex(this.terManager.addTercet(incTer));
 										while(!this.incrementTercets.isEmpty()){
@@ -983,15 +987,15 @@ case 59:
 									this.currentLine = ((SymbolItem)val_peek(9)).getToken().getLine(); checkControlVars((SymbolItem)val_peek(7),(SymbolItem)val_peek(3));}
 break;
 case 60:
-//#line 276 "MyGrammar.y"
+//#line 280 "MyGrammar.y"
 {yyerror("Missing condition.");}
 break;
 case 61:
-//#line 278 "MyGrammar.y"
+//#line 282 "MyGrammar.y"
 {yyerror("Missing assignment. What were you planning on iterating on?");}
 break;
 case 62:
-//#line 281 "MyGrammar.y"
+//#line 285 "MyGrammar.y"
 {yyval = val_peek(2); this.currentLine = ((SymbolItem)val_peek(2)).getToken().getLine();
 																		((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.VAR);
 																		((SymbolItem)yyval).setScope(this.currentScope.getScope());
@@ -1005,7 +1009,7 @@ case 62:
 																		}}
 break;
 case 63:
-//#line 293 "MyGrammar.y"
+//#line 297 "MyGrammar.y"
 {yyval = val_peek(1);
 																		((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.VAR); 
 																		((SymbolItem)yyval).setScope(this.currentScope.getScope());
@@ -1014,40 +1018,46 @@ case 63:
 																			yyerror("For Variable not declared!");
 																		}
 																		else {
-																			yyval = variable;
-																			/*Linea de creacion del -- estilo this.incrementTercet = new Assignment($1,$3,"");*/
+																			yyval = new Decrement(val_peek(1),null,this.currentScope.getScope());
+																			this.incrementTercets.addLast(new Decrement(val_peek(1),null,this.currentScope.getScope()));
 																		}}
 break;
 case 64:
-//#line 306 "MyGrammar.y"
+//#line 310 "MyGrammar.y"
 {this.incrementTercets.addLast(new Addition(val_peek(2),val_peek(0),""));}
 break;
 case 65:
-//#line 308 "MyGrammar.y"
+//#line 312 "MyGrammar.y"
 {this.incrementTercets.addLast(new Subtraction(val_peek(2),val_peek(0),""));}
 break;
 case 66:
-//#line 310 "MyGrammar.y"
+//#line 314 "MyGrammar.y"
 {yyval = val_peek(0); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.VAR); 
 																					((SymbolItem)yyval).setScope(this.currentScope.getScope());
 																					if(!this.symTable.contains((SymbolItem)yyval)){ yyerror("Variable not declared!");}}
 break;
 case 67:
-//#line 314 "MyGrammar.y"
+//#line 318 "MyGrammar.y"
 {yyval = val_peek(0); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.CONST); 
 																					((SymbolItem)yyval).setArithmeticType(this.currentType);
 																					this.symTable.addSymbol((SymbolItem)yyval);}
 break;
 case 68:
-//#line 320 "MyGrammar.y"
-{yyval = val_peek(1); ((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)val_peek(3)).getToken().getLine();}
+//#line 324 "MyGrammar.y"
+{yyval = val_peek(1);
+									((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.STR); 
+									this.symTable.addSymbol((SymbolItem)yyval);
+									this.currentLine = ((SymbolItem)val_peek(3)).getToken().getLine();
+									yyval = new Print(val_peek(1),null,this.currentScope.getScope());
+									((Tercet)yyval).setIndex(this.terManager.addTercet((Tercet)yyval));
+									yyval = val_peek(1);}
 break;
 case 69:
-//#line 323 "MyGrammar.y"
+//#line 333 "MyGrammar.y"
 {this.currentScope.pushScope(((SymbolItem)val_peek(3)).getLex());}
 break;
 case 70:
-//#line 324 "MyGrammar.y"
+//#line 334 "MyGrammar.y"
 {yyval = val_peek(5);
 																													((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)yyval).setArithmeticType(this.currentType);
@@ -1063,11 +1073,11 @@ case 70:
 																													notify("Found function declaration: " + yyval.toString(), currentLine);}
 break;
 case 71:
-//#line 338 "MyGrammar.y"
+//#line 348 "MyGrammar.y"
 {this.currentScope.pushScope(((SymbolItem)val_peek(2)).getLex());}
 break;
 case 72:
-//#line 339 "MyGrammar.y"
+//#line 349 "MyGrammar.y"
 {yyval = val_peek(4);
 																													((SymbolItem)yyval).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)yyval).setArithmeticType(this.currentType);
@@ -1083,48 +1093,48 @@ case 72:
 																													notify("Found function declaration: " + yyval.toString(), currentLine);}
 break;
 case 73:
-//#line 353 "MyGrammar.y"
+//#line 363 "MyGrammar.y"
 {yyerror("Missing function body.");}
 break;
 case 74:
-//#line 355 "MyGrammar.y"
+//#line 365 "MyGrammar.y"
 {yyerror("Missing function body.");}
 break;
 case 75:
-//#line 357 "MyGrammar.y"
+//#line 367 "MyGrammar.y"
 {this.currentLine = ((SymbolItem)val_peek(5)).getToken().getLine();
 																													yyerror("Missing function type", this.currentLine);}
 break;
 case 76:
-//#line 360 "MyGrammar.y"
+//#line 370 "MyGrammar.y"
 {this.currentLine = ((SymbolItem)val_peek(4)).getToken().getLine();
 																													yyerror("Missing function type", this.currentLine);}
 break;
 case 84:
-//#line 380 "MyGrammar.y"
+//#line 390 "MyGrammar.y"
 {yyerror("Expected sentence or return sentence.");}
 break;
 case 85:
-//#line 382 "MyGrammar.y"
+//#line 392 "MyGrammar.y"
 {yyerror("Expected return sentence.");}
 break;
 case 86:
-//#line 384 "MyGrammar.y"
+//#line 394 "MyGrammar.y"
 {yyerror("Expected '}'.");}
 break;
 case 87:
-//#line 386 "MyGrammar.y"
+//#line 396 "MyGrammar.y"
 {yyerror("Expected '}'.");}
 break;
 case 89:
-//#line 391 "MyGrammar.y"
+//#line 401 "MyGrammar.y"
 {yyerror("Expected ';' after return statement");}
 break;
 case 90:
-//#line 393 "MyGrammar.y"
+//#line 403 "MyGrammar.y"
 {yyerror("Expected something to return");}
 break;
-//#line 1059 "Parser.java"
+//#line 1069 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

@@ -28,8 +28,10 @@ public class SymbolsTable {
     }
     
     public void printTable(){
+        System.out.println();
         System.out.println("----------SYMBOLS TABLE----------");
         System.out.println("Type----------idType---------Name");
+        System.out.println("---------------------------------"); 
         Collection<SymbolItem> valuesCollection = this.tableOfSymbols.values();
         for(SymbolItem si: valuesCollection){
             String print = "" + si.getArithmeticType();

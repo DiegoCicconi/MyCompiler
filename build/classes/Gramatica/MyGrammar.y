@@ -124,7 +124,7 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									|		
 									iteration  							{notify("Found Iteration sentence ", this.currentLine);}
 									|		
-									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine); this.symTable.addSymbol((SymbolItem)$$);}
+									print _SEMICOLON 					{$$ = $1; notify("Found Print sentence: " + $$.toString(), this.currentLine);}
 									|		
 									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString(), this.currentLine);}
 									|
@@ -152,7 +152,8 @@ assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((
 																		yyerror("Variable not declared!", this.currentLine);
 																	}
 																	else {
-																		$$ = variable;
+																		$$ = new Decrement($1,null,this.currentScope.getScope());
+																		((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
 																	}}
 									;
 
@@ -194,7 +195,10 @@ factor:                    _ID 						{$$ = $1; ((SymbolItem)$$).setSymbolUse(Sym
 									|
 									_ID _MINUS_ONE			{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
 																((SymbolItem)$$).setScope(this.currentScope.getScope());
-																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
+																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}
+																$$ = new Decrement($1,null,this.currentScope.getScope());
+																((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
+																$$ = $1;}
 									;
 
 constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticType.INT;}
@@ -298,8 +302,8 @@ increment:						_ID _ASSIGN for_expression	{$$ = $1; this.currentLine = ((Symbol
 																			yyerror("For Variable not declared!");
 																		}
 																		else {
-																			$$ = variable;
-																			//Linea de creacion del -- estilo this.incrementTercet = new Assignment($1,$3,"");
+																			$$ = new Decrement($1,null,this.currentScope.getScope());
+																			this.incrementTercets.addLast(new Decrement($1,null,this.currentScope.getScope()));
 																		}}
 									;
 
@@ -317,7 +321,13 @@ for_expression: 				for_expression _PLUS for_expression		{this.incrementTercets.
 									;
 
 print:                     _PRINT _LPAREN _STRING _RPAREN 			
-									{$$ = $3; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); this.currentLine = ((SymbolItem)$1).getToken().getLine();}
+									{$$ = $3;
+									((SymbolItem)$$).setSymbolUse(SymbolItem.Use.STR); 
+									this.symTable.addSymbol((SymbolItem)$$);
+									this.currentLine = ((SymbolItem)$1).getToken().getLine();
+									$$ = new Print($3,null,this.currentScope.getScope());
+									((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
+									$$ = $3;}
 									;
 
 function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());}

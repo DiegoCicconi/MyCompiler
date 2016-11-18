@@ -14,7 +14,7 @@ Segunda2:= Segunda2 + 1;     && constante mal definida
 entero_largo_y_nombre_tambien := _l32767;
 var_no_declarada := _i203;
 if(Primera_1 > _i0)
-	for(Segunda2 := _i10; Segunda2 > _i0; Segunda2:=Segunda2-1){ && variables de control del for distintas
+	for(Segunda2 := _i10; Segunda2 > _i0; Segunda2--){ && variables de control del for distintas
 		Primera_1 := Segunda2 + _i203;
 	}
 else

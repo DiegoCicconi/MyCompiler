@@ -30,7 +30,7 @@ public class MyCompiler {
         System.out.println("--------------------------------------");
         tm.printTercets();
         st.printTable();
-        AssemblerGen ag = new AssemblerGen();
+        AssemblerGen ag = new AssemblerGen(st);
         ag.assembleAndCompile("hello");
     }
     

@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 public class AssemblerGen {
-    public AssemblerGen(){
+    private SymbolsTable st;
+    public AssemblerGen(SymbolsTable st){
+        this.st = st;
     }
     public void assembleAndCompile(String name){
 	if(name.contains(".txt"))
@@ -32,6 +35,14 @@ public class AssemblerGen {
 	writer.println("HelloWorld db \"Hello World!\", 0");
         
         //Carga de la tabla de Simbolos
+        ArrayList<SymbolItem> tableOfSymbols = this.st.getAll();
+        for(int i = 0; i < tableOfSymbols.size(); i++){
+            SymbolItem s = tableOfSymbols.get(i);
+//            if(s.getSymbolUse() == SymbolItem.Use.STR)
+//                writer.println(s.getScopedName() + " db \"" + s.getLex()+"\", 0");
+            if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC)
+                writer.println(s.getScopedName() + " dw 0");
+        }
         /*
         ArrayList<Simbolo> cadenas = lexer.getTablaSimbolos().getSimbolos();
 		for(int i=0 ; i<cadenas.size() ; i++){

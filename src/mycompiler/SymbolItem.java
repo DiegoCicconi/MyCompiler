@@ -65,6 +65,13 @@ public class SymbolItem extends Referenceable{
         hash = 89 * hash + Objects.hashCode(this.scope);
         return hash;
     }
+    public int arithmeticHashCode(){
+        int hash  = this.token.hashCode();
+        hash = 89 * hash + Objects.hashCode(this.symbolUse);
+        hash = 89 * hash + Objects.hashCode(this.arithmeticType);
+        hash = 89 * hash + Objects.hashCode(this.scope);
+        return hash;
+    }
     public ArrayList<Integer> hashCodes(){
         ArrayList<Integer> codes = new ArrayList<>();
         String upperScope = new String(this.scope);

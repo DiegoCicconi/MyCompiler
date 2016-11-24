@@ -18,6 +18,12 @@ public class SymbolsTable {
     public boolean contains(SymbolItem st){
         return this.tableOfSymbols.containsKey(st.hashCode());
     }
+    public boolean containsArithmetic(SymbolItem st){
+        if(this.tableOfSymbols.containsKey(st.hashCode()))
+            if(this.tableOfSymbols.get(st.hashCode()).arithmeticHashCode() == st.arithmeticHashCode())
+                return true;
+        return false;
+    }
     public SymbolItem getSymbol(SymbolItem st){
         ArrayList<Integer> codes = st.hashCodes();
             for(int i = 0; i < codes.size(); i++){
@@ -25,6 +31,12 @@ public class SymbolsTable {
                     return this.tableOfSymbols.get(codes.get(i));
             }
         return null;
+    }
+    
+    public ArrayList<SymbolItem> getAll(){
+        ArrayList<SymbolItem> ret = new ArrayList<>();
+        ret.addAll(this.tableOfSymbols.values());
+        return ret;
     }
     
     public void printTable(){

@@ -89,6 +89,7 @@ type_var_list:					type var_list
 type:								_INTEGER 			{this.currentType = SymbolItem.ArithmeticType.INT;}
 									|
 									_LONGINTEGER 		{this.currentType = SymbolItem.ArithmeticType.LONG;}
+									;
 
 var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
@@ -113,6 +114,104 @@ var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																	yyerror("Variable already declared!");
 																}
 																notify("Found variable declaration: " + $$.toString());}
+									;
+
+function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());
+																													this.terManager.inFunction();
+																													((SymbolItem)$5).setScope(this.currentScope.getScope());
+																													Tercet function = new Function($3,$5,this.currentScope.getScope());
+																													function.setIndex(this.terManager.addTercet(function));}
+																								function_body 	{$$ = $3;
+																													Tercet ret = new Return($3,$8,this.currentScope.getScope());
+																													ret.setIndex(this.terManager.addTercet(ret));
+																													this.terManager.outOfFunction();
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
+																													if(!this.symTable.contains((SymbolItem)$$)){
+																														this.symTable.addSymbol((SymbolItem)$$);
+																													}
+																													else{
+																														this.currentLine = ((SymbolItem)$2).getToken().getLine();
+																														yyerror("Function name already used!", this.currentLine);
+																													}
+																													notify("Found function declaration: " + $$.toString(), currentLine);}
+									|
+									type _FUNCTION _ID _LPAREN _RPAREN									{this.currentScope.pushScope(((SymbolItem)$3).getLex());
+																													this.terManager.inFunction();
+																													Tercet function = new Function($3,null,this.currentScope.getScope());
+																													function.setIndex(this.terManager.addTercet(function));}
+															 						function_body				{$$ = $3;
+															 														Tercet ret = new Return($3,$7,this.currentScope.getScope());
+																													ret.setIndex(this.terManager.addTercet(ret));
+															 														this.terManager.outOfFunction();
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													this.currentScope.popScope();
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
+																													if(!this.symTable.contains((SymbolItem)$$)){
+																														this.symTable.addSymbol((SymbolItem)$$);
+																													}
+																													else{
+																														this.currentLine = ((SymbolItem)$2).getToken().getLine();
+																														yyerror("Function name already used!", this.currentLine);
+																													}
+																													notify("Found function declaration: " + $$.toString(), currentLine);}
+									|
+									type _FUNCTION _ID _LPAREN parameter _RPAREN error 			{yyerror("Missing function body.");}
+									|
+									type _FUNCTION _ID _LPAREN _RPAREN error 							{yyerror("Missing function body.");}
+									|
+									_FUNCTION _ID 	_LPAREN parameter _RPAREN 	function_body		{this.currentLine = ((SymbolItem)$1).getToken().getLine();
+																													yyerror("Missing function type", this.currentLine);}
+									|
+									_FUNCTION _ID 	_LPAREN _RPAREN 	function_body					{this.currentLine = ((SymbolItem)$1).getToken().getLine();
+																													yyerror("Missing function type", this.currentLine);}
+									;
+
+parameter:						type _FUNCTION _ID _LPAREN _RPAREN									{$$ = $3; 
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
+																													if(!this.symTable.containsArithmetic((SymbolItem)$$)){ 
+																														this.currentLine = ((SymbolItem)$3).getToken().getLine();
+																														yyerror("Function not declared!" , this.currentLine);
+																													}
+																													else {
+																														((SymbolItem)$$).setSymbolUse(SymbolItem.Use.PARAM);
+																														((SymbolItem)$$).setArithmeticType(this.currentType);
+																														this.symTable.addSymbol((SymbolItem)$$);
+																													}}
+									|
+									type _ID 																	{$$ = $2;
+																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.PARAM); 
+																													((SymbolItem)$$).setArithmeticType(this.currentType);
+																													((SymbolItem)$$).setScope(this.currentScope.getScope());
+																													this.symTable.addSymbol((SymbolItem)$$);}
+									;
+
+function_body:					declaration_sentences function_sentence_block 				{$$ = $2;}
+									|
+									function_sentence_block 											{$$ = $1;}
+									;
+
+function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE 	{$$ = $3;}
+									|
+									_LCBRACE return_sentence _RCBRACE								{$$ = $2;}
+									|
+									_LCBRACE error 													{yyerror("Expected sentence or return sentence.");}
+									|
+									_LCBRACE executable_sentences error 						{yyerror("Expected return sentence.");}
+									|
+									_LCBRACE executable_sentences return_sentence error 	{yyerror("Expected '}'.");}
+									|
+									_LCBRACE return_sentence 										{yyerror("Expected '}'.");}
+									;
+
+return_sentence:				_RETURN expression _SEMICOLON			{$$ = $2;}
+									|
+									_RETURN expression error 				{yyerror("Expected ';' after return statement");}
 									;
 
 executable_sentences:      executable_sentences sentence
@@ -185,25 +284,46 @@ term:                      term _MULT factor		{$$ = new Multiplication($1,$3,"")
 									factor					{$$ = $1;}
 									;
 
-factor:                    _ID 						{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+factor:                    _ID 						{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
+																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																((SymbolItem)$$).setScope(this.currentScope.getScope());
-																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
+																SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																if(variable == null){ 
+																	yyerror("Variable not declared!" , this.currentLine);
+																}
+																else{
+																	$$ = variable;
+																}}
 									|
 									constant					{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
 																this.symTable.addSymbol((SymbolItem)$$);}
 									|
-									_ID _MINUS_ONE			{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
-																((SymbolItem)$$).setScope(this.currentScope.getScope());
-																if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}
+									_ID _MINUS_ONE			{$$ = $1; this.checkVarDeclaration((SymbolItem)$$);
 																$$ = new Decrement($1,null,this.currentScope.getScope());
 																((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
 																$$ = $1;}
+									|
+									functionCall			{$$ = $1;} //Crear Terceto de Funcion
 									;
 
 constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticType.INT;}
 									|
 									_LONGINT 				{this.currentType = SymbolItem.ArithmeticType.LONG;}
+									;
+
+functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
+									{$$ = $1; this.checkFunctionDeclaration((SymbolItem)$1);}
+									|
+									_ID _LPAREN _ID _RPAREN			// CON VARIABLE COMO PARAMETRO
+									{$$ = $1; 
+									this.checkFunctionDeclaration((SymbolItem)$1);
+									this.checkVarDeclaration((SymbolItem)$3);}
+									|
+									_ID _LPAREN _ID _LPAREN _RPAREN _RPAREN	// CON FUNCION COMO PARAMETRO
+									{$$ = $1; 
+									this.checkFunctionDeclaration((SymbolItem)$1);
+									this.checkFunctionDeclaration((SymbolItem)$3);}
 									;
 
 selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
@@ -214,9 +334,6 @@ selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF		
 									|
 									_IF _LPAREN condition _RPAREN sentence_block else_section error 	{this.currentLine = ((SymbolItem)$1).getToken().getLine(); 
 																															yyerror("Expected endif;");}
-									|
-									_IF _LPAREN condition error 													{this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																															yyerror("Expected ')'", this.currentLine);}
 									|
 									_IF _LPAREN condition _RPAREN error 										{this.currentLine = ((SymbolItem)$1).getToken().getLine();
 																															yyerror("Wrong if statement, sentence(s) expected");}
@@ -265,7 +382,8 @@ sentence_block:     			_LCBRACE executable_sentences _RCBRACE
 
 iteration:                 _FOR _LPAREN assignment _SEMICOLON 															{this.iterationJumpDir = this.terManager.getNextIndex();}
 																					condition _SEMICOLON increment _RPAREN sentence_block	
-									{Tercet incTer = this.incrementTercets.pollFirst();
+									{checkControlVars((SymbolItem)$3,(SymbolItem)$8);
+									Tercet incTer = this.incrementTercets.pollFirst();
 									incTer.setIndex(this.terManager.addTercet(incTer));
 										while(!this.incrementTercets.isEmpty()){
 											incTer = this.incrementTercets.pollFirst();
@@ -275,14 +393,14 @@ iteration:                 _FOR _LPAREN assignment _SEMICOLON 															{th
 									newBU.setIndex(this.terManager.addTercet(newBU));
 									((JumpTercet)newBU).setJumpDir(this.iterationJumpDir);
 									this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
-									this.currentLine = ((SymbolItem)$1).getToken().getLine(); checkControlVars((SymbolItem)$3,(SymbolItem)$7);}
+									this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|
 									_FOR _LPAREN assignment _SEMICOLON error {yyerror("Missing condition.");}
 									|
 									_FOR _LPAREN error {yyerror("Missing assignment. What were you planning on iterating on?");}
 									;
 
-increment:						_ID _ASSIGN for_expression	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
+increment:						_ID _ASSIGN for_expression	{$$ = $1;
 																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																		((SymbolItem)$$).setScope(this.currentScope.getScope());
 																		SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
@@ -302,7 +420,6 @@ increment:						_ID _ASSIGN for_expression	{$$ = $1; this.currentLine = ((Symbol
 																			yyerror("For Variable not declared!");
 																		}
 																		else {
-																			$$ = new Decrement($1,null,this.currentScope.getScope());
 																			this.incrementTercets.addLast(new Decrement($1,null,this.currentScope.getScope()));
 																		}}
 									;
@@ -330,78 +447,6 @@ print:                     _PRINT _LPAREN _STRING _RPAREN
 									$$ = $3;}
 									;
 
-function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
-																								function_body 	{$$ = $3;
-																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
-																													((SymbolItem)$$).setArithmeticType(this.currentType);
-																													this.currentScope.popScope();
-																													((SymbolItem)$$).setScope(this.currentScope.getScope());
-																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
-																													if(!this.symTable.contains((SymbolItem)$$)){
-																														this.symTable.addSymbol((SymbolItem)$$);
-																													}
-																													else{
-																														yyerror("Function name already used!", this.currentLine);
-																													}
-																													notify("Found function declaration: " + $$.toString(), currentLine);}
-									|
-									type _FUNCTION _ID _LPAREN _RPAREN									{this.currentScope.pushScope(((SymbolItem)$3).getLex());}
-															 						function_body				{$$ = $3;
-																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
-																													((SymbolItem)$$).setArithmeticType(this.currentType);
-																													this.currentScope.popScope();
-																													((SymbolItem)$$).setScope(this.currentScope.getScope());
-																													this.currentLine = ((SymbolItem)$2).getToken().getLine();
-																													if(!this.symTable.contains((SymbolItem)$$)){
-																														this.symTable.addSymbol((SymbolItem)$$);
-																													}
-																													else{
-																														yyerror("Function name already used!", this.currentLine);
-																													}
-																													notify("Found function declaration: " + $$.toString(), currentLine);}
-									|
-									type _FUNCTION _ID _LPAREN parameter _RPAREN error 			{yyerror("Missing function body.");}
-									|
-									type _FUNCTION _ID _LPAREN _RPAREN error 							{yyerror("Missing function body.");}
-									|
-									_FUNCTION _ID 	_LPAREN parameter _RPAREN 	function_body		{this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																													yyerror("Missing function type", this.currentLine);}
-									|
-									_FUNCTION _ID 	_LPAREN _RPAREN 	function_body					{this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																													yyerror("Missing function type", this.currentLine);}
-									;
-
-parameter:						_FUNCTION _ID
-									|
-									_INTEGER _ID
-									|
-									_LONGINTEGER _ID
-									;
-
-function_body:					declaration_sentences function_sentence_block 
-									|
-									function_sentence_block 
-									;
-
-function_sentence_block:   _LCBRACE executable_sentences return_sentence _RCBRACE
-									|
-									_LCBRACE return_sentence _RCBRACE
-									|
-									_LCBRACE error 													{yyerror("Expected sentence or return sentence.");}
-									|
-									_LCBRACE executable_sentences error 						{yyerror("Expected return sentence.");}
-									|
-									_LCBRACE executable_sentences return_sentence error 	{yyerror("Expected '}'.");}
-									|
-									_LCBRACE return_sentence 										{yyerror("Expected '}'.");}
-									;
-
-return_sentence:				_RETURN expression _SEMICOLON
-									|
-									_RETURN expression error 				{yyerror("Expected ';' after return statement");}
-									|
-									_RETURN error 								{yyerror("Expected something to return");}
-									;
 
 %%
 
@@ -438,9 +483,22 @@ public void yyerror(String error){
 public void yyerror(String error, int line){
 	this.syntaxErrLog.addLog(error, line);
 }
-
+public void checkFunctionDeclaration(SymbolItem s){
+	s.setSymbolUse(SymbolItem.Use.FUNC); 
+	s.setScope(this.currentScope.getScope());
+	if(!this.symTable.contains(s)){ 
+		yyerror("Funcion not declared!");
+	}
+}
+public void checkVarDeclaration(SymbolItem s){
+	s.setSymbolUse(SymbolItem.Use.VAR); 
+	s.setScope(this.currentScope.getScope());
+	if(!this.symTable.contains(s)){ 
+		yyerror("Variable not declared!");
+	}
+}
 public void checkControlVars(SymbolItem s1, SymbolItem s2){
-	if(!s1.getToken().getLex().equals(s2.getToken().getLex()))
+	if(!s1.getLex().equals(s2.getLex()))
 		yyerror("Control variable must be the same at for Iteration",this.currentLine);
 }
 

@@ -23,7 +23,7 @@ public class Tercet extends Referenceable {
     public int getLine(){return this.operand1.getLine();}
     
     public String printTercet(){
-        return this.index + " (" + this.operation + " ," + operand1.toString() + "," + operand2.toString() + ")";
+        return this.index + " (" + this.operation + " , " + operand1.toString() + ", " + operand2.toString() + ")";
     }
     @Override
     public int hashCode(){

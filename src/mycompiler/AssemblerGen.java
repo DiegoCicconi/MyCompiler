@@ -38,21 +38,19 @@ public class AssemblerGen {
         ArrayList<SymbolItem> tableOfSymbols = this.st.getAll();
         for(int i = 0; i < tableOfSymbols.size(); i++){
             SymbolItem s = tableOfSymbols.get(i);
-//            if(s.getSymbolUse() == SymbolItem.Use.STR)
-//                writer.println(s.getScopedName() + " db \"" + s.getLex()+"\", 0");
+            if(s.getSymbolUse() == SymbolItem.Use.STR)
+                writer.println(s.getLex().replaceAll(" ","_") + " db \"" + s.getLex()+"\", 0");
             if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC)
                 writer.println(s.getScopedName() + " dw 0");
+            if(s.getSymbolUse() == SymbolItem.Use.PARAM)
+                writer.println("PARAM_" + s.getScopedName() + " dw 0");
+            if(s.getSymbolUse() == SymbolItem.Use.CONST){
+                if(s.getArithmeticType() == SymbolItem.ArithmeticType.INT)
+                    writer.println("ci" + s.getScopedName().replaceFirst("-", "n") + " dw " + s.getLex());
+                if(s.getArithmeticType() == SymbolItem.ArithmeticType.LONG)
+                    writer.println("cl" + s.getScopedName().replaceFirst("-", "n") + " dw " + s.getLex());
+            }    
         }
-        /*
-        ArrayList<Simbolo> cadenas = lexer.getTablaSimbolos().getSimbolos();
-		for(int i=0 ; i<cadenas.size() ; i++){
-			Simbolo s = cadenas.get(i);
-			if(s.getId()==Parser.CADENA)
-				writer.println(s.getNombreASM()+" db \""+s.getLexema()+"\", 0");
-			if(s.getId()==Parser.IDENTIFICADOR)
-				writer.println(s.getNombreASM()+" dw 0");
-		}
-        */
 	//fin tabla de simbolos
 
 	writer.println("divCero db \"Error de ejecucion: No se permite la division por cero\", 0");
@@ -90,8 +88,6 @@ public class AssemblerGen {
 	writer.println("_errorInc:");
 	writer.println("invoke StdOut, addr incompatibilidad");
 	writer.println("JMP _fin");
-	//writer.println("_bien: invoke StdOut, addr prueba");
-	//writer.println("jmp _fin");
 	writer.println("_fin: invoke ExitProcess, 0");
 	writer.println("end start");
 	

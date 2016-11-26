@@ -54,7 +54,7 @@ public class SymbolItem extends Referenceable{
     public String getLex(){return this.token.getLex();}
     
     @Override
-    public String toString(){return " " + this.token.getLex();}
+    public String toString(){return "" + this.token.getLex();}
     public String toStringExtended(){
         return this.arithmeticType + " " + this.symbolUse + " " + this.token.getLex();
     }

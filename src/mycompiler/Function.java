@@ -16,8 +16,8 @@ public class Function extends Tercet{
     @Override
     public String printTercet(){
         if(this.parameter == null)
-            return this.index + " (" + this.operation + " , " + this.label + ")";
+            return this.index + " (" + this.operation + ", " + this.label + ")";
         else
-            return this.index + " (" + this.operation + " , " + this.label + "," + this.parameter.toString() + ")";
+            return this.index + " (" + this.operation + ", " + this.label + ", " + this.parameter.getScopedName() + ")";
     }
 }

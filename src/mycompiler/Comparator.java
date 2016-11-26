@@ -13,5 +13,4 @@ public class Comparator extends Tercet {
                     case "!=": {break;}
                 }
     }
-    
 }

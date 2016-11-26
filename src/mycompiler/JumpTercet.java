@@ -13,6 +13,6 @@ public class JumpTercet extends Tercet{
     }
     @Override
     public String printTercet(){
-        return this.index + " (" + this.operation + " ," + operand1.toString() + "," + this.jumpDir + ")";
+        return this.index + " (" + this.operation + ", " + operand1.toString() + ", " + this.jumpDir + ")";
     }
 }

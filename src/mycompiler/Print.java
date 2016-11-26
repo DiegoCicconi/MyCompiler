@@ -8,6 +8,6 @@ public class Print extends Tercet {
     }
     @Override
     public String printTercet(){
-        return this.index + " (" + this.operation + " ,\"" + operand1.toString() + "\")";
+        return this.index + " (" + this.operation + " , \"" + operand1.toString() + "\" )";
     }
 }

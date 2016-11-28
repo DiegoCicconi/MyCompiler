@@ -5,10 +5,12 @@ import java.util.ArrayList;
 public class TercetManager {
     private ArrayList<Tercet> tercets;
     private ArrayList<Tercet> functions;
-    private static boolean conversionAllowance; //the only one for the moment is INT to LONG (hardcoded)
+    private static boolean conversionAllowance; //flag for the only one for the moment, INT to LONG (hardcoded)
     private static Logger errors;
-    private boolean inFunction;
-    private int functionCount;
+    private boolean labelNextTercet;    //para funcionalidad de marcar los tercetos que son direcciones de salto
+    private boolean inFunction;         //flag que denota si estamos agregando tercetos de una funcion o del programa
+    private int functionCount;          //Por si estamos definiendo una funcion adentro de otra, 
+                                        //que cuando salgamos no dejemos de agregar en la seccion de funciones
     
     public TercetManager(){
         this.tercets = new ArrayList<Tercet>();
@@ -17,8 +19,14 @@ public class TercetManager {
         TercetManager.errors = new Logger("TERCET ERROR");
         this.inFunction = false;
         this.functionCount = 0;
+        this.labelNextTercet = false;
     }
     public int addTercet(Tercet t){
+        if(this.labelNextTercet){
+            //concretamos el seteo de label al terceto que es una direccion de salto
+            t.activeLabeling();
+            this.labelNextTercet = false;
+        }
         if(this.inFunction){
             this.functions.add(t);
             return this.functions.lastIndexOf(t);
@@ -29,10 +37,15 @@ public class TercetManager {
         }
     }
     public int getNextIndex(){
-        if(this.inFunction)
-            return this.functions.size();
-        else
+        //siempre que se pide por el proximo indice es porque es un direccion de salto posible
+        if(this.inFunction){
+            this.labelNextTercet = true; // por eso marcamos al proximo terceto para que agregue un label
+            return this.functions.size();            
+        }
+        else{
+            this.labelNextTercet = true;
             return this.tercets.size();
+        }
     }
     public void inFunction(){
         this.functionCount++;

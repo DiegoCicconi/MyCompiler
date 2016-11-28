@@ -7,13 +7,22 @@ public class Tercet extends Referenceable {
     protected Referenceable operand1;
     protected Referenceable operand2;
     protected int index = -1;
+    protected boolean labelTercet;  //intended to mark tercets that are a jump direction
+    
     public Tercet(Referenceable op1, Referenceable op2, String sc){
         this.operand1 = op1;
         this.operand2 = op2;
         this.scope = sc;
+        this.labelTercet = false;
     }
     public void setIndex(int i){
         this.index = i;
+    }
+    public void activeLabeling(){
+        this.labelTercet = true;
+    }
+    public boolean isLabel(){
+        return this.labelTercet;
     }
     @Override
     public String toString(){

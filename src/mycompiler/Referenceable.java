@@ -2,6 +2,9 @@ package mycompiler;
 
 public class Referenceable {
     protected String scope = new String();
+    protected String assemblerName;    //nombre que posee en el codigo assembler, ya sea una variable, una constante,
+                                       //o un terceto que esta en un registro, será entonces el nombre del registro
+    
     public Referenceable(){
     }
     public void setScope(String sc){
@@ -9,6 +12,12 @@ public class Referenceable {
     }
     public String getScope(){
         return this.scope;
+    }
+    public void setAssemblerName(String name){
+        this.assemblerName = name;
+    }
+    public String getAssemblerName(){
+        return this.assemblerName;
     }
     public String toString(){
         return "";

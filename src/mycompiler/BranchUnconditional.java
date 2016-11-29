@@ -8,6 +8,14 @@ public class BranchUnconditional extends JumpTercet {
         this.operation = "BI";
     }
     @Override
+    public String getAssemblerCode(RegisterTracing rt, boolean inFunction){
+        //Le pasamos al metodo si pertenece a una funcion o no, lo demas es convencion de labels
+        if(inFunction)
+            return "JMP " + "FLabel_" + this.jumpDir;
+        else
+            return "JMP " + "Label_" + this.jumpDir;
+    }
+    @Override
     public String printTercet(){
         return this.index + " (" + this.operation + " ,"  + this.jumpDir + ")";
     }

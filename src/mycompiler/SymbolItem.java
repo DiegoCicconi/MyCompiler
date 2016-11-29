@@ -47,6 +47,21 @@ public class SymbolItem extends Referenceable{
     
     public String getScopedName(){return this.scopedName;}
     
+    @Override
+    public String getAssemblerName(){
+        //De acuerdo a las convenciones, estos son los nombres que tendran en el archivo assembler
+        if(this.symbolUse == SymbolItem.Use.CONST){
+            if(this.arithmeticType == SymbolItem.ArithmeticType.INT)
+               return this.getScopedName().replaceFirst("-", "n");
+            if(this.arithmeticType == SymbolItem.ArithmeticType.LONG)
+               return this.getScopedName().replaceFirst("-", "n");
+        }
+        else{
+            if(this.symbolUse == SymbolItem.Use.STR)
+                return this.getLex().replaceAll(" ","_");
+        }
+        return this.scopedName;
+    }
     public Token getToken(){return this.token;}
     @Override
     public int getLine(){return this.token.getLine();}

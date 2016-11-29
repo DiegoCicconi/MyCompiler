@@ -9,9 +9,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class AssemblerGen {
-    private SymbolsTable st;
-    public AssemblerGen(SymbolsTable st){
-        this.st = st;
+    private SymbolsTable symTab;
+    private RegisterTracing regTra;
+    private TercetManager terMan;
+    
+    public AssemblerGen(SymbolsTable st, TercetManager tm){
+        this.symTab = st;
+        this.terMan = tm;
+        this.regTra = new RegisterTracing();
     }
     public void assembleAndCompile(String name){
 	if(name.contains(".txt"))
@@ -35,7 +40,7 @@ public class AssemblerGen {
 	writer.println("HelloWorld db \"Hello World!\", 0");
         
         //Carga de la tabla de Simbolos
-        ArrayList<SymbolItem> tableOfSymbols = this.st.getAll();
+        ArrayList<SymbolItem> tableOfSymbols = this.symTab.getAll();
         for(int i = 0; i < tableOfSymbols.size(); i++){
             SymbolItem s = tableOfSymbols.get(i);
             if(s.getSymbolUse() == SymbolItem.Use.STR)
@@ -60,23 +65,20 @@ public class AssemblerGen {
 	writer.println(".code");
 	writer.println("JMP start");
 	/* FUNCIONES
-	ArrayList<String> codeFunct = new ArrayList<String>();
-	prog.generarCodigoFunciones(codeFunct, regs, l);
-	for (int i = 0; i < codeFunct.size(); i++)
-		writer.println(codeFunct.get(i));
-	writer.println("start:");
-	*/
-
-	//comienzo codigo
-	/*
-	ArrayList<String> code = new ArrayList<String>();
-	prog.generarCodigo(code, regs,l);
-	for(int i=0 ; i<code.size() ; i++)
-		writer.println(code.get(i));
-	*/
-	
+        ArrayList<Tercet> functions = this.terMan.getFunctions();
+        for(int i = 0; i < functions.size(); i++){
+            writer.println(functions.get(i).getAssemblerCode(this.regTra,true));
+        }
+        */
 	writer.println("start:\n" +
         "invoke StdOut, addr HelloWorld");
+	
+	/* PROGRAMA
+	ArrayList<Tercet> program = this.terMan.getProgram();
+        for(int i = 0; i < program.size(); i++){
+            writer.println(program.get(i).getAssemblerCode(this.regTra,false));
+        }
+        */
         
 	writer.println("JMP _fin");
 	writer.println("_divPorCero:");

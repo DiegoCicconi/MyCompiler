@@ -47,6 +47,12 @@ public class TercetManager {
             return this.tercets.size();
         }
     }
+    public ArrayList<Tercet> getProgram(){
+        return this.tercets;
+    }
+    public ArrayList<Tercet> getFunctions(){
+        return this.functions;
+    }
     public void inFunction(){
         this.functionCount++;
         this.inFunction = true;

@@ -24,6 +24,9 @@ public class Tercet extends Referenceable {
     public boolean isLabel(){
         return this.labelTercet;
     }
+    public String getAssemblerCode(RegisterTracing rt, boolean inF){
+        return "";
+    }
     @Override
     public String toString(){
         return "[" + this.index +  "]";

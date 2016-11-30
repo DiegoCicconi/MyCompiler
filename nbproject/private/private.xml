@@ -6,9 +6,13 @@
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/SymbolsTable.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Parser.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Tercet.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/AssemblerGen.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/BranchFalse.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Comparator.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/SymbolItem.java</file>
-            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/JumpTercet.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/RegisterTracing.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/BranchUnconditional.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/MyCompiler.java</file>
         </group>
     </open-files>
 </project-private>

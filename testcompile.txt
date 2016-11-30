@@ -1,11 +1,14 @@
 programName
 integer Segunda2,Primera_1,_id_mal_definido;
 longint entero_largo_y_nombre_tambien;
-integer function Mad_King(longint x)
-	longint variable_de_function;
+integer function x(){
+	return _i20;
+}
+integer function Mad_King(integer function x())
+	integer variable_de_function;
 	{
 	variable_de_function := _i2;
-	return variable_de_function;
+	return variable_de_function - _i1;
 	}
 {
 Primera_1 := _i-32768 + _i32767; &&@NC anotacion: ultimo y primer valor dentro del rango

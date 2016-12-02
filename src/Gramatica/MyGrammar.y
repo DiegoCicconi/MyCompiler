@@ -243,16 +243,17 @@ assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((
 																		toAdd.setIndex(this.terManager.addTercet(toAdd));
 																	}}
 									|
-									_ID _MINUS_ONE				{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
+									_ID _MINUS_ONE				{$$ = $1;
+																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																	((SymbolItem)$$).setScope(this.currentScope.getScope());
 																	SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
 																	if(variable == null){ 
-																		yyerror("Variable not declared!", this.currentLine);
+																		yyerror("Variable not declared!" , this.currentLine);
 																	}
 																	else {
-																		$$ = new Decrement($1,null,this.currentScope.getScope());
-																		((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
+																		$$ = variable;
+																		Tercet toAdd = new Decrement($$,null,this.currentScope.getScope());
+																		toAdd.setIndex(this.terManager.addTercet(toAdd));
 																	}}
 									;
 
@@ -267,12 +268,9 @@ expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
 									|
 									_INTTOLONG _LPAREN expression _RPAREN
 																	{$$ = $3; 
-																	if(terManager.conversionAllowed()){
+																	if(terManager.conversionAllowed())
 																		$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);
-																	}
-																	else{
-																		terManager.getLog().addLog("Conversion not allowed", ((SymbolItem)$1).getToken().getLine());
-																	}}
+																	else terManager.getLog().addLog("Conversion not allowed", ((SymbolItem)$1).getToken().getLine());}
 									;
 
 term:                      term _MULT factor		{$$ = new Multiplication($1,$3,"");
@@ -284,14 +282,14 @@ term:                      term _MULT factor		{$$ = new Multiplication($1,$3,"")
 									factor					{$$ = $1;}
 									;
 
-factor:                    _ID 						{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
+factor:                    _ID 						{$$ = $1;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																((SymbolItem)$$).setScope(this.currentScope.getScope());
 																SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
 																if(variable == null){ 
 																	yyerror("Variable not declared!" , this.currentLine);
 																}
-																else{
+																else {
 																	$$ = variable;
 																}}
 									|
@@ -299,12 +297,20 @@ factor:                    _ID 						{$$ = $1; this.currentLine = ((SymbolItem)$
 																((SymbolItem)$$).setArithmeticType(this.currentType);
 																this.symTable.addSymbol((SymbolItem)$$);}
 									|
-									_ID _MINUS_ONE			{$$ = $1; this.checkVarDeclaration((SymbolItem)$$);
-																$$ = new Decrement($1,null,this.currentScope.getScope());
-																((Tercet)$$).setIndex(this.terManager.addTercet((Tercet)$$));
-																$$ = $1;}
+									_ID _MINUS_ONE			{$$ = $1;
+																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
+																((SymbolItem)$$).setScope(this.currentScope.getScope());
+																SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
+																if(variable == null){ 
+																	yyerror("Variable not declared!" , this.currentLine);
+																}
+																else {
+																	$$ = variable;
+																	Tercet toAdd = new Decrement($$,null,this.currentScope.getScope());
+																	toAdd.setIndex(this.terManager.addTercet(toAdd));
+																}}
 									|
-									functionCall			{$$ = $1;} //Crear Terceto de Funcion
+									functionCall			{$$ = $1;}
 									;
 
 constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticType.INT;}
@@ -411,37 +417,18 @@ iteration:                 _FOR _LPAREN assignment _SEMICOLON 															{th
 									_FOR _LPAREN error {yyerror("Missing assignment. What were you planning on iterating on?");}
 									;
 
-increment:						_ID _ASSIGN for_expression	{$$ = $1;
-																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
-																		((SymbolItem)$$).setScope(this.currentScope.getScope());
-																		SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
-																		if(variable == null){ 
-																			yyerror("For Variable not declared!");
-																		}
-																		else {
-																			$$ = variable;
-																			this.incrementTercets.addLast(new Assignment($1,$3,""));
-																		}}
+increment:						_ID _ASSIGN for_expression	{$$ = this.checkVarDeclaration((SymbolItem)$1);
+																		this.incrementTercets.addLast(new Assignment($1,$3,""));}
 									|
-									_ID _MINUS_ONE					{$$ = $1;
-																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
-																		((SymbolItem)$$).setScope(this.currentScope.getScope());
-																		SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
-																		if(variable == null){ 
-																			yyerror("For Variable not declared!");
-																		}
-																		else {
-																			this.incrementTercets.addLast(new Decrement($1,null,this.currentScope.getScope()));
-																		}}
+									_ID _MINUS_ONE					{$$ = this.checkVarDeclaration((SymbolItem)$1);
+																		this.incrementTercets.addLast(new Decrement($1,null,this.currentScope.getScope()));}
 									;
 
 for_expression: 				for_expression _PLUS for_expression		{this.incrementTercets.addLast(new Addition($1,$3,""));}
 									|
 									for_expression _MINUS for_expression	{this.incrementTercets.addLast(new Subtraction($1,$3,""));}
 									|
-									_ID 											{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR); 
-																					((SymbolItem)$$).setScope(this.currentScope.getScope());
-																					if(!this.symTable.contains((SymbolItem)$$)){ yyerror("Variable not declared!");}}
+									_ID 											{$$ = this.checkVarDeclaration((SymbolItem)$1);}
 									|
 									constant										{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
 																					((SymbolItem)$$).setArithmeticType(this.currentType);

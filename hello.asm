@@ -36,10 +36,6 @@ JMP start
 start:
 invoke StdOut, addr HelloWorld
 invoke StdOut, addr newline
-invoke StdOut, addr Esto_es_una_cadenabien_definida
-invoke StdOut, addr newline
-invoke StdOut, addr Esto_es_una_cadenamal_definida
-invoke StdOut, addr newline
 JMP _fin
 _divPorCero:
 invoke StdOut, addr divCero

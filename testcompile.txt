@@ -7,7 +7,6 @@ integer function x(){
 integer function Mad_King(integer function x())
 	integer variable_de_function;
 	{
-	variable_de_function := _i2;
 	return variable_de_function - _i1;
 	}
 {

@@ -313,17 +313,28 @@ constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticT
 									;
 
 functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
-									{$$ = $1; this.checkFunctionDeclaration((SymbolItem)$1);}
+									{$$ = $1;
+									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
+									this.terManager.addTercet(new FunctionCall(func,null,this.currentScope.getScope()));}
+									/*
 									|
+									_ID _LPAREN expression _RPAREN 			// CON EXPRESION COMO PARAMETRO
+									{$$ = $1;
+									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
+									this.terManager.addTercet(new FunctionCall(func,$3,this.currentScope.getScope()));}
+									|
+									*/
 									_ID _LPAREN _ID _RPAREN			// CON VARIABLE COMO PARAMETRO
 									{$$ = $1; 
-									this.checkFunctionDeclaration((SymbolItem)$1);
-									this.checkVarDeclaration((SymbolItem)$3);}
+									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
+									SymbolItem var = this.checkVarDeclaration((SymbolItem)$3);
+									this.terManager.addTercet(new FunctionCall(func,var,this.currentScope.getScope()));}
 									|
 									_ID _LPAREN _ID _LPAREN _RPAREN _RPAREN	// CON FUNCION COMO PARAMETRO
 									{$$ = $1; 
-									this.checkFunctionDeclaration((SymbolItem)$1);
-									this.checkFunctionDeclaration((SymbolItem)$3);}
+									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
+									SymbolItem param = this.checkFunctionDeclaration((SymbolItem)$3);
+									this.terManager.addTercet(new FunctionCall(func,param,this.currentScope.getScope()));}
 									;
 
 selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
@@ -483,19 +494,23 @@ public void yyerror(String error){
 public void yyerror(String error, int line){
 	this.syntaxErrLog.addLog(error, line);
 }
-public void checkFunctionDeclaration(SymbolItem s){
+public SymbolItem checkFunctionDeclaration(SymbolItem s){
 	s.setSymbolUse(SymbolItem.Use.FUNC); 
 	s.setScope(this.currentScope.getScope());
 	if(!this.symTable.contains(s)){ 
 		yyerror("Funcion not declared!");
+		return null;
 	}
+	return this.symTable.getSymbol(s);
 }
-public void checkVarDeclaration(SymbolItem s){
+public SymbolItem checkVarDeclaration(SymbolItem s){
 	s.setSymbolUse(SymbolItem.Use.VAR); 
 	s.setScope(this.currentScope.getScope());
 	if(!this.symTable.contains(s)){ 
 		yyerror("Variable not declared!");
+		return null;
 	}
+	return this.symTable.getSymbol(s);
 }
 public void checkControlVars(SymbolItem s1, SymbolItem s2){
 	if(!s1.getLex().equals(s2.getLex()))

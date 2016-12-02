@@ -24,7 +24,6 @@ ci10 dw 10
 Esto_es_una_cadenamal_definida db "Esto es una cadenamal definida", 0
 Segunda2@programName dw 0
 ci32767 dw 32767
-ci2 dw 2
 x@programName dw 0
 ci203 dw 203
 ci0 dw 0
@@ -33,6 +32,15 @@ overflow db "Error de ejecucion: overflow en operacion de suma", 0
 incompatibilidad db "Error de ejecucion: Perdida de informacion, no se puede convertir INT", 0
 .code
 JMP start
+function_x: 
+MOV ax, 20 
+MOV x@programName, ax 
+RET
+function_Mad_King: 
+MOV ax, variable_de_function@programName@Mad_King
+SUB ax, 1
+MOV Mad_King@programName, ax
+RET
 start:
 invoke StdOut, addr HelloWorld
 JMP _fin

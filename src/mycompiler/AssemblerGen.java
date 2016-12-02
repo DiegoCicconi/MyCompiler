@@ -43,17 +43,27 @@ public class AssemblerGen {
         ArrayList<SymbolItem> tableOfSymbols = this.symTab.getAll();
         for(int i = 0; i < tableOfSymbols.size(); i++){
             SymbolItem s = tableOfSymbols.get(i);
-            if(s.getSymbolUse() == SymbolItem.Use.STR)
+            if(s.getSymbolUse() == SymbolItem.Use.STR){
                 writer.println(s.getLex().replaceAll(" ","_") + " db \"" + s.getLex()+"\", 0");
-            if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC)
+                s.setAssemblerName(s.getLex().replaceAll(" ", "_"));
+            }
+            if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC){
                 writer.println(s.getScopedName() + " dw 0");
-            if(s.getSymbolUse() == SymbolItem.Use.PARAM)
+                s.setAssemblerName(s.getScopedName());
+            }
+            if(s.getSymbolUse() == SymbolItem.Use.PARAM){
                 writer.println("PARAM_" + s.getScopedName() + " dw 0");
+                s.setAssemblerName("PARAM_" + s.getScopedName());
+            }
             if(s.getSymbolUse() == SymbolItem.Use.CONST){
-                if(s.getArithmeticType() == SymbolItem.ArithmeticType.INT)
+                if(s.getArithmeticType() == SymbolItem.ArithmeticType.INT){
                     writer.println("ci" + s.getScopedName().replaceFirst("-", "n") + " dw " + s.getLex());
-                if(s.getArithmeticType() == SymbolItem.ArithmeticType.LONG)
+                    s.setAssemblerName("ci" + s.getScopedName().replaceFirst("-", "n"));
+                }
+                if(s.getArithmeticType() == SymbolItem.ArithmeticType.LONG){
                     writer.println("cl" + s.getScopedName().replaceFirst("-", "n") + " dw " + s.getLex());
+                    s.setAssemblerName("cl" + s.getScopedName().replaceFirst("-", "n"));
+                }
             }    
         }
 	//fin tabla de simbolos

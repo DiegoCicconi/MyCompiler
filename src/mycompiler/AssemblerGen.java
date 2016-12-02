@@ -71,6 +71,7 @@ public class AssemblerGen {
 	writer.println("divCero db \"Error de ejecucion: No se permite la division por cero\", 0");
 	writer.println("overflow db \"Error de ejecucion: overflow en operacion de suma\", 0");
 	writer.println("incompatibilidad db \"Error de ejecucion: Perdida de informacion, no se puede convertir INT\", 0");
+	writer.println("newline db ' ',13,10,0");
 			
 	writer.println(".code");
 	writer.println("JMP start");
@@ -82,6 +83,7 @@ public class AssemblerGen {
         */
 	writer.println("start:\n" +
         "invoke StdOut, addr HelloWorld");
+	writer.println("invoke StdOut, addr newline");
 	
 	/* PROGRAMA
 	ArrayList<Tercet> program = this.terMan.getProgram();

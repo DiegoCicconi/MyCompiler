@@ -30,19 +30,16 @@ ci0 dw 0
 divCero db "Error de ejecucion: No se permite la division por cero", 0
 overflow db "Error de ejecucion: overflow en operacion de suma", 0
 incompatibilidad db "Error de ejecucion: Perdida de informacion, no se puede convertir INT", 0
+newline db ' ',13,10,0
 .code
 JMP start
-function_x: 
-MOV ax, 20 
-MOV x@programName, ax 
-RET
-function_Mad_King: 
-MOV ax, variable_de_function@programName@Mad_King
-SUB ax, 1
-MOV Mad_King@programName, ax
-RET
 start:
 invoke StdOut, addr HelloWorld
+invoke StdOut, addr newline
+invoke StdOut, addr Esto_es_una_cadenabien_definida
+invoke StdOut, addr newline
+invoke StdOut, addr Esto_es_una_cadenamal_definida
+invoke StdOut, addr newline
 JMP _fin
 _divPorCero:
 invoke StdOut, addr divCero

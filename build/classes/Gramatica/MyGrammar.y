@@ -325,14 +325,13 @@ functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
 									Tercet toAdd = new FunctionCall(func,null,this.currentScope.getScope());
 									toAdd.setIndex(this.terManager.addTercet(toAdd));
 									$$ = toAdd;}
-									/*
 									|
 									_ID _LPAREN expression _RPAREN 			// CON EXPRESION COMO PARAMETRO
 									{$$ = $1;
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									this.terManager.addTercet(new FunctionCall(func,$3,this.currentScope.getScope()));}
+									/*
 									|
-									*/
 									_ID _LPAREN _ID _RPAREN			// CON VARIABLE COMO PARAMETRO
 									{$$ = $1; 
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
@@ -346,6 +345,7 @@ functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
 									SymbolItem param = this.checkFunctionDeclaration((SymbolItem)$3);
 									Tercet toAdd = new FunctionCall(func,param,this.currentScope.getScope());
 									toAdd.setIndex(this.terManager.addTercet(toAdd));}
+									*/
 									;
 
 selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());

@@ -18,13 +18,13 @@ public class MyCompiler {
         TercetManager tm = new TercetManager();
         Parser p = new Parser(la,st,tm);
         p.Run();
-        //p.getTokensLog().printLogs();
+        p.getTokensLog().printLogs();
         System.out.println("--------------------------------------");
-        //p.getSyntaxStructures().printLogs();
+        p.getSyntaxStructures().printLogs();
         System.out.println("--------------------------------------");
-        //la.getWarnings().printLogs();
+        la.getWarnings().printLogs();
         System.out.println("--------------------------------------");
-        //la.getErrors().printLogs();
+        la.getErrors().printLogs();
         System.out.println("--------------------------------------");
         p.getErrors().printLogs();
         System.out.println("--------------------------------------");

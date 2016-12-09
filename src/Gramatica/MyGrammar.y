@@ -228,6 +228,8 @@ sentence:               	selection  _SEMICOLON			{notify("Found Selection senten
 									assignment _SEMICOLON 			{$$ = $1; notify("Found Assignment of: " + $$.toString(), this.currentLine);}
 									|
 									assignment _SEMICOLON _ANNOT 	{$$ = $1; notify("Found Assignment with annotation of: " + $$.toString(), this.currentLine);}
+									|
+									functionCall _SEMICOLON			{$$ = $1; notify("Found Function Invocation");}
 									;
 
 assignment:             	_ID _ASSIGN expression 	{$$ = $1; this.currentLine = ((SymbolItem)$1).getToken().getLine();
@@ -319,9 +321,10 @@ constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticT
 									;
 
 functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
-									{$$ = $1;
-									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
-									this.terManager.addTercet(new FunctionCall(func,null,this.currentScope.getScope()));}
+									{SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
+									Tercet toAdd = new FunctionCall(func,null,this.currentScope.getScope());
+									toAdd.setIndex(this.terManager.addTercet(toAdd));
+									$$ = toAdd;}
 									/*
 									|
 									_ID _LPAREN expression _RPAREN 			// CON EXPRESION COMO PARAMETRO
@@ -334,13 +337,15 @@ functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
 									{$$ = $1; 
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									SymbolItem var = this.checkVarDeclaration((SymbolItem)$3);
-									this.terManager.addTercet(new FunctionCall(func,var,this.currentScope.getScope()));}
+									Tercet toAdd = new FunctionCall(func,var,this.currentScope.getScope());
+									toAdd.setIndex(this.terManager.addTercet(toAdd));}
 									|
 									_ID _LPAREN _ID _LPAREN _RPAREN _RPAREN	// CON FUNCION COMO PARAMETRO
 									{$$ = $1; 
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									SymbolItem param = this.checkFunctionDeclaration((SymbolItem)$3);
-									this.terManager.addTercet(new FunctionCall(func,param,this.currentScope.getScope()));}
+									Tercet toAdd = new FunctionCall(func,param,this.currentScope.getScope());
+									toAdd.setIndex(this.terManager.addTercet(toAdd));}
 									;
 
 selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF					{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());

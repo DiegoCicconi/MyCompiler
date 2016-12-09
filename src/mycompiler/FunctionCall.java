@@ -35,4 +35,11 @@ public class FunctionCall extends Tercet{
         code += "POP ax\n";
         return code;
     }
+    @Override
+    public String printTercet(){
+        if(this.operand2 != null)
+            return super.printTercet();
+        else
+            return this.index + " (" + this.operation + " , " + operand1.toString() + ")";
+    }
 }

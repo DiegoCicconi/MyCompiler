@@ -58,12 +58,17 @@ import java.util.LinkedList;
 /* Grammar follows */
 
 program:                 	_ID {this.currentScope = new Scope($1.getLex());}
-									declaration_sentences _LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$5).getToken().getLine() + 1);}
+									declaration_sentences executabe_part 
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine());}
 									|				
 									_ID {this.currentScope = new Scope($1.getLex());}
-									_LCBRACE executable_sentences _RCBRACE 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine() + 1);}
+									executabe_part
+									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$3).getToken().getLine());}
+									;
+
+executabe_part: 				_LCBRACE executable_sentences _RCBRACE 	{$$ = $3;}
+									|
+									_LCBRACE _RCBRACE		{$$ = $2;}
 									;
 
 declaration_sentences:     declaration_sentences type_var_list _SEMICOLON
@@ -358,11 +363,10 @@ selection:                 _IF _LPAREN condition _RPAREN sentence_block _ENDIF		
 																															yyerror("Expected endif;");}
 									|
 									_IF _LPAREN condition _RPAREN error 										{this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																															yyerror("Wrong if statement, sentence(s) expected");}
+																															yyerror("Wrong if statement, sentence(s) section error");}
 									;
 
-else_section:              								
-									_ELSE 
+else_section:              _ELSE 
 																	{Tercet newBU = new BranchUnconditional(null,null,this.currentScope.getScope());
 																	newBU.setIndex(this.terManager.addTercet(newBU));
 																	this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());

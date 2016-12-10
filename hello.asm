@@ -8,11 +8,10 @@ includelib \masm32\lib\kernel32.lib
 includelib \masm32\lib\masm32.lib
 .data
 HelloWorld db "Hello World!", 0
-Mad_King@programName dw 0
-variable_de_function@programName@Mad_King dw 0
-ci2 dw 2
+var2@programName dw 0
 var1@programName dw 0
 ci3 dw 3
+ci0 dw 0
 divCero db "Error de ejecucion: No se permite la division por cero", 0
 overflow db "Error de ejecucion: overflow en operacion de suma", 0
 incompatibilidad db "Error de ejecucion: Perdida de informacion, no se puede convertir INT", 0

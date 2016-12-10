@@ -1,12 +1,9 @@
 programName
 integer var1;
-integer function Mad_King()
-	integer variable_de_function;
-	{
-	variable_de_function := _i2;
-	return variable_de_function;
-	}
+longint var2;
 {
- var1 := _i3;
- Mad_King();
+ if(var1 > _i0)
+    var1 := var2 + _i3; 
+    var2 := inttolong(var1);
+  endif;
 }

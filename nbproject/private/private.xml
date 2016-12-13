@@ -4,7 +4,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/SymbolsTable.java</file>
-            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/LexicalAnalyzer.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Subtraction.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Multiplication.java</file>
+            <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Addition.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/Parser.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/SymbolItem.java</file>
             <file>file:/C:/Users/DiegoMSI/Documents/NetBeansProjects/MyCompiler/src/mycompiler/MyCompiler.java</file>

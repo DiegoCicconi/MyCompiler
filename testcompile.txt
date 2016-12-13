@@ -1,6 +1,7 @@
 programName
 integer var1;
 longint var2;
+allow integer to longint;
 {
  if(var1 > _i0)
     var1 := var2 + _i3; 

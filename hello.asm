@@ -21,6 +21,14 @@ JMP start
 start:
 invoke StdOut, addr HelloWorld
 invoke StdOut, addr newline
+MOV bx , var1@programName
+CMP bx , 0
+JG Label_4
+MOV bx, var2@programName
+ADD bx, 3
+MOV var1@programName, bx
+
+Label_4:
 JMP _fin
 _divPorCero:
 invoke StdOut, addr divCero

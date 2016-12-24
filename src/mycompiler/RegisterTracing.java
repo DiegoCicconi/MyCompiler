@@ -13,7 +13,7 @@ public class RegisterTracing {
     
     public String getFreeReg(){
         int freeReg = -1;
-        for(int i=0; i < this.regCount; i++){
+        for(int i=1; i < this.regCount; i++){
             if(!this.busy[i]){
                 freeReg = i;
                 this.busy[i] = true;
@@ -21,6 +21,21 @@ public class RegisterTracing {
             }
         }
         return mapReg(freeReg);
+    }
+    
+    public String getFreeAX(){
+        if(!busy[0]) return mapReg(0);
+        return "";
+    }
+    
+    public String getFreeCX(){
+        if(!busy[2]) return mapReg(2);
+        return "";
+    }
+    
+    public String getFreeDX(){
+        if(!busy[3]) return mapReg(3);
+        return "";
     }
     
     private String mapReg(int reg){

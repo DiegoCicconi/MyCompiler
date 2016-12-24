@@ -75,23 +75,26 @@ public class AssemblerGen {
 			
 	writer.println(".code");
 	writer.println("JMP start");
-	/* FUNCIONES
+        
+	/* FUNCIONES */
         ArrayList<Tercet> functions = this.terMan.getFunctions();
         for(int i = 0; i < functions.size(); i++){
             writer.println(functions.get(i).getAssemblerCode(this.regTra,true));
         }
-        */
+        
 	writer.println("start:\n" +
         "invoke StdOut, addr HelloWorld");
 	writer.println("invoke StdOut, addr newline");
 	
-	/* PROGRAMA
+	/* PROGRAMA */
 	ArrayList<Tercet> program = this.terMan.getProgram();
         for(int i = 0; i < program.size(); i++){
             writer.println(program.get(i).getAssemblerCode(this.regTra,false));
         }
-        */
-        
+        int lastTercet = this.terMan.isNextTercetLabel();
+        if(lastTercet != 0){
+            writer.println("Label_" + lastTercet + ":");
+        }
 	writer.println("JMP _fin");
 	writer.println("_divPorCero:");
 	writer.println("invoke StdOut, addr divCero");

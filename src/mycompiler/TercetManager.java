@@ -47,6 +47,12 @@ public class TercetManager {
             return this.tercets.size();
         }
     }
+    public int isNextTercetLabel(){
+        if(this.labelNextTercet)
+            return this.tercets.size();
+        else
+            return 0;
+    }
     public ArrayList<Tercet> getProgram(){
         return this.tercets;
     }

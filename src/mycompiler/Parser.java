@@ -753,7 +753,7 @@ case 1:
 break;
 case 2:
 //#line 62 "MyGrammar.y"
-{yyval = val_peek(3); notify(yyval.toString() + " Compilated Successfully!", ((SymbolItem)val_peek(0)).getToken().getLine());}
+{yyval = val_peek(3); notify(yyval.toString() + " End Of File Reached!", ((SymbolItem)val_peek(0)).getToken().getLine());}
 break;
 case 3:
 //#line 64 "MyGrammar.y"
@@ -761,7 +761,7 @@ case 3:
 break;
 case 4:
 //#line 66 "MyGrammar.y"
-{yyval = val_peek(2); notify(yyval.toString() + " Compilated Successfully!", ((SymbolItem)val_peek(0)).getToken().getLine());}
+{yyval = val_peek(2); notify(yyval.toString() + " End Of File Reached!", ((SymbolItem)val_peek(0)).getToken().getLine());}
 break;
 case 5:
 //#line 69 "MyGrammar.y"

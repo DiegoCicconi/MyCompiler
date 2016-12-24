@@ -59,11 +59,11 @@ import java.util.LinkedList;
 
 program:                 	_ID {this.currentScope = new Scope($1.getLex());}
 									declaration_sentences executabe_part 
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$4).getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " End Of File Reached!", ((SymbolItem)$4).getToken().getLine());}
 									|				
 									_ID {this.currentScope = new Scope($1.getLex());}
 									executabe_part
-									{$$ = $1; notify($$.toString() + " Compilated Successfully!", ((SymbolItem)$3).getToken().getLine());}
+									{$$ = $1; notify($$.toString() + " End Of File Reached!", ((SymbolItem)$3).getToken().getLine());}
 									;
 
 executabe_part: 				_LCBRACE executable_sentences _RCBRACE 	{$$ = $3;}

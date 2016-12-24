@@ -30,7 +30,7 @@ public class Comparator extends Tercet {
         else{
             String regOP1 = rt.getFreeReg();
             code+= "MOV " + regOP1 + " , " + op1 + "\n";
-            code+= "CMP " + regOP1 + " , " + op2 + "\n";  
+            code+= "CMP " + regOP1 + " , " + op2;  
             rt.freeReg(regOP1);
             return code;
         }

@@ -18,6 +18,8 @@ public class SymbolItem extends Referenceable{
     }
     public SymbolItem(){
         this.token = null;
+        this.arithmeticType = ArithmeticType.NOT_DEF;
+        this.symbolUse = Use.NOT_DEF;
     }
     public SymbolItem(Token token){
         this.token = token;
@@ -30,7 +32,7 @@ public class SymbolItem extends Referenceable{
         this.scopedName = token.getLex(); 
         this.arithmeticType = at;
         this.symbolUse = su;
-    }
+        }
     public void setSymbolUse(Use su){this.symbolUse = su;}
     public Use getSymbolUse(){return this.symbolUse;}
     
@@ -51,14 +53,11 @@ public class SymbolItem extends Referenceable{
     public String getAssemblerName(){
         //De acuerdo a las convenciones, estos son los nombres que tendran en el archivo assembler
         if(this.symbolUse == SymbolItem.Use.CONST){
-            if(this.arithmeticType == SymbolItem.ArithmeticType.INT)
-               return this.getScopedName().replaceFirst("-", "n");
-            if(this.arithmeticType == SymbolItem.ArithmeticType.LONG)
-               return this.getScopedName().replaceFirst("-", "n");
+            return super.getAssemblerName();
         }
         else{
             if(this.symbolUse == SymbolItem.Use.STR)
-                return this.getLex().replaceAll(" ","_");
+                return super.getAssemblerName();
         }
         return this.scopedName;
     }

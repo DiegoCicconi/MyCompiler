@@ -15,15 +15,16 @@ public class Division extends TypedTercet {
                 code += "Label_" + this.index + ":\n";
         }
         String op = "IDIV ";
-        code += "MOV DX, 0\n"; // Limpia el resto
+        String conversion = "CWD\n";
+        code += "MOV dx, 0\n"; // Limpia el resto
         this.assemblerName = rt.getFreeAX();
-        //Checking division by 0
+        /* Checking division by 0 */
         code += "CMP " + this.operand2.getAssemblerName() + ", 0\n";
         code += "JE _divPorCero\n";
         if(rt.isThisARegister(this.operand1.getAssemblerName()) &&
            rt.isThisARegister(this.operand2.getAssemblerName())){
             code += "MOV " + this.assemblerName + ", " + this.operand1.getAssemblerName() + "\n";
-            code += "CWD " + op + this.operand2.assemblerName + "\n";
+            code += conversion + op + this.operand2.assemblerName + "\n";
             rt.freeReg(this.operand1.getAssemblerName());
             rt.freeReg(this.operand2.getAssemblerName());
         }
@@ -37,13 +38,13 @@ public class Division extends TypedTercet {
             }
         else if(rt.isThisARegister(this.operand2.getAssemblerName())){
             code += "MOV " + this.assemblerName + ", " + this.operand1.getAssemblerName() + "\n";
-            code += "CWD " + op + this.operand2.getAssemblerName() + "\n";
+            code += conversion + op + this.operand2.getAssemblerName() + "\n";
             rt.freeReg(this.operand2.getAssemblerName());
         }
         else {
             String auxReg = rt.getFreeReg();
             code += "MOV " + this.assemblerName + ", " + this.operand1.getAssemblerName() + "\n";
-            code += "CWD MOV " + auxReg + ", " + this.operand2.getAssemblerName() + "\n";
+            code += conversion + "MOV " + auxReg + ", " + this.operand2.getAssemblerName() + "\n";
             code += op + auxReg + "\n";
             rt.freeReg(auxReg);
         }

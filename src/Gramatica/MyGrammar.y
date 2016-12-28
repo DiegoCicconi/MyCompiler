@@ -294,7 +294,10 @@ factor:                    _ID 						{$$ = $1;
 									|
 									constant					{$$ = $1; ((SymbolItem)$$).setSymbolUse(SymbolItem.Use.CONST); 
 																((SymbolItem)$$).setArithmeticType(this.currentType);
-																this.symTable.addSymbol((SymbolItem)$$);}
+																if(!this.symTable.contains((SymbolItem)$$))
+																	this.symTable.addSymbol((SymbolItem)$$);
+																else
+																	$$ = this.symTable.getSymbol((SymbolItem)$$);}
 									|
 									decrement 				{$$ = $1;}
 									|

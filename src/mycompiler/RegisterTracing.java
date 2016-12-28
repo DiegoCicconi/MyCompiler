@@ -68,6 +68,8 @@ public class RegisterTracing {
     }
     
     public boolean isThisARegister(String reg){
+        if(reg == null)
+            return false;
         return (reg.equals("ax") || reg.equals("bx") || reg.equals("cx") || reg.equals("dx"));
     }
 }

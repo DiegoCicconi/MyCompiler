@@ -6,29 +6,52 @@ include \masm32\include\kernel32.inc
 include \masm32\include\masm32.inc
 includelib \masm32\lib\kernel32.lib
 includelib \masm32\lib\masm32.lib
+
 .data
 HelloWorld db "Hello World!", 0
 var2@programName dw 0
+ci2 dw 2
 var1@programName dw 0
-ci3 dw 3
-ci0 dw 0
-divCero db "Error de ejecucion: No se permite la division por cero", 0
-overflow db "Error de ejecucion: overflow en operacion de suma", 0
-incompatibilidad db "Error de ejecucion: Perdida de informacion, no se puede convertir INT", 0
+STR_TRUE db "TRUE", 0
+ci1 dw 1
+STR_FALSE db "FALSE", 0
+divCero db "Error de ejecucion aritmetico: division por cero", 0
+overflow db "Error de ejecucion aritmetico: overflow en suma", 0
+incompatibilidad db "Error de ejecucion: Perdida de informacion en la conversion de INT", 0
 newline db ' ',13,10,0
+
 .code
 JMP start
 start:
 invoke StdOut, addr HelloWorld
 invoke StdOut, addr newline
-MOV bx , var1@programName
-CMP bx , 0
-JG Label_4
+MOV bx, ci1
+MOV var2@programName, bx
+
+MOV dx, 0
+CMP var2@programName, 0
+JE _divPorCero
+MOV ax, ci2
+CWD
 MOV bx, var2@programName
-ADD bx, 3
+IDIV bx
+MOV bx, ax 
+
 MOV var1@programName, bx
 
-Label_4:
+MOV bx, var1@programName
+CMP bx, ci2
+
+JNE Label_7
+invoke StdOut, addr STR_TRUE
+invoke StdOut, addr newline
+
+JMP Label_8
+Label_7:
+invoke StdOut, addr STR_FALSE
+invoke StdOut, addr newline
+
+Label_8:
 JMP _fin
 _divPorCero:
 invoke StdOut, addr divCero

@@ -36,6 +36,7 @@ public class AssemblerGen {
 	writer.println("include \\masm32\\include\\masm32.inc");
 	writer.println("includelib \\masm32\\lib\\kernel32.lib");
 	writer.println("includelib \\masm32\\lib\\masm32.lib");
+	writer.println("");
 	writer.println(".data");
 	writer.println("HelloWorld db \"Hello World!\", 0");
         
@@ -44,8 +45,9 @@ public class AssemblerGen {
         for(int i = 0; i < tableOfSymbols.size(); i++){
             SymbolItem s = tableOfSymbols.get(i);
             if(s.getSymbolUse() == SymbolItem.Use.STR){
-                writer.println(s.getLex().replaceAll(" ","_") + " db \"" + s.getLex()+"\", 0");
-                s.setAssemblerName(s.getLex().replaceAll(" ", "_"));
+                String chain = "STR_" + s.getLex().replaceAll(" ","_");
+                writer.println(chain + " db \"" + s.getLex()+"\", 0");
+                s.setAssemblerName(chain);
             }
             if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC){
                 writer.println(s.getScopedName() + " dw 0");
@@ -68,11 +70,11 @@ public class AssemblerGen {
         }
 	//fin tabla de simbolos
 
-	writer.println("divCero db \"Error de ejecucion: No se permite la division por cero\", 0");
-	writer.println("overflow db \"Error de ejecucion: overflow en operacion de suma\", 0");
-	writer.println("incompatibilidad db \"Error de ejecucion: Perdida de informacion, no se puede convertir INT\", 0");
-	writer.println("newline db ' ',13,10,0");
-			
+	writer.println("divCero db \"Error de ejecucion aritmetico: division por cero\", 0");
+	writer.println("overflow db \"Error de ejecucion aritmetico: overflow en suma\", 0");
+	writer.println("incompatibilidad db \"Error de ejecucion: Perdida de informacion en la conversion de INT\", 0");
+	writer.println("newline db ' ',13,10,0");			
+	writer.println("");
 	writer.println(".code");
 	writer.println("JMP start");
         

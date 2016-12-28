@@ -3,8 +3,11 @@ integer var1;
 longint var2;
 allow integer to longint;
 {
- if(var1 > _i0){
-    var1 := var2 + _i3; 
-  }
-  endif;
+var2 := 1;
+var1 := _i2/var2; 
+if(var1 = _i2)
+  print("TRUE");
+else
+  print("FALSE");
+endif;
 }

@@ -14,8 +14,14 @@ public class Print extends Tercet {
     @Override
     public String getAssemblerCode(RegisterTracing rt, boolean inFunction){
         String print ="";
+        if(this.isLabel()){
+            if(inFunction)
+                print += "FLabel_" + this.index + ":\n";
+            else
+                print += "Label_" + this.index + ":\n";
+        }
         print += "invoke StdOut, addr " + this.operand1.getAssemblerName() + "\n";
-	print += "invoke StdOut, addr newline";
+	print += "invoke StdOut, addr newline\n";
         return print;
     }
 }

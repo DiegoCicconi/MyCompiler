@@ -16,9 +16,7 @@ public class Function extends Tercet{
     }
     @Override
     public String getAssemblerCode(RegisterTracing rt, boolean inFunction){
-        String code = "";
-        code += "function_" + functionName + ": ";		
-        return code;
+        return "function_" + this.getLabel() + ":";
     }
     @Override
     public String printTercet(){

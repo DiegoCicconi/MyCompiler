@@ -51,13 +51,9 @@ public class SymbolItem extends Referenceable{
     
     @Override
     public String getAssemblerName(){
-        //De acuerdo a las convenciones, estos son los nombres que tendran en el archivo assembler
-        if(this.symbolUse == SymbolItem.Use.CONST){
+        if(this.symbolUse == SymbolItem.Use.CONST || this.symbolUse == SymbolItem.Use.STR ||
+            this.symbolUse == SymbolItem.Use.PARAM){
             return super.getAssemblerName();
-        }
-        else{
-            if(this.symbolUse == SymbolItem.Use.STR)
-                return super.getAssemblerName();
         }
         return this.scopedName;
     }
@@ -80,6 +76,7 @@ public class SymbolItem extends Referenceable{
         return hash;
     }
     public int arithmeticHashCode(){
+        //devuelve el hash considerando el tipo aritmetico
         int hash  = this.token.hashCode();
         hash = 89 * hash + Objects.hashCode(this.symbolUse);
         hash = 89 * hash + Objects.hashCode(this.arithmeticType);
@@ -87,6 +84,7 @@ public class SymbolItem extends Referenceable{
         return hash;
     }
     public ArrayList<Integer> hashCodes(){
+        //devuelve tambien el hash que tendrian en scopes superiores
         ArrayList<Integer> codes = new ArrayList<>();
         String upperScope = new String(this.scope);
         codes.add(this.hashCode());

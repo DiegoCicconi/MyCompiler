@@ -68,6 +68,9 @@ public class TercetManager {
         if(this.functionCount == 0)
             this.inFunction = false;
     }
+    public boolean areWeInFunction(){
+        return this.inFunction;
+    }
     public void enableConversion(){
         TercetManager.conversionAllowance = true;
     }

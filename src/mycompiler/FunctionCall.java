@@ -1,10 +1,13 @@
 package mycompiler;
 
 public class FunctionCall extends Tercet{
-    public FunctionCall(Referenceable op1, Referenceable op2, String sc) {
+    private String paramName;
+    public FunctionCall(Referenceable op1, Referenceable op2, String param, String sc) {
         // 1er operando es la entrada en la tabla de simbolos de la funcion que se invoca
         // 2do operando es paramtro si lo hubiera(variable, funcion o expresion), sino null
+        // 3er operando es el parametro con el nombre que tiene en la funcion
         super(op1, op2, sc);
+        this.paramName = param;
         this.operation = "FCall";
     }
     @Override
@@ -18,13 +21,13 @@ public class FunctionCall extends Tercet{
         if(this.operand2 != null){
             if(rt.isThisARegister(this.operand2.getAssemblerName())){
                 //Si es un registro entonces es una expresion que se resolvio de un terceto => la movemos a la variable del parametro
-                code += "MOV PARAM_" + this.operand1.getAssemblerName() + ", " + this.operand2.getAssemblerName() + "\n";
+                code += "MOV " + this.paramName + ", " + this.operand2.getAssemblerName() + "\n";
             }
             else {
                 //Si no es un registro entonces es un elemento de la tabla de simbolos => mov a reg y luego a la variable del parametro
                 String regAux = rt.getFreeReg();
                 code += "MOV " + regAux + ", " + this.operand2.getAssemblerName() + "\n";
-                code += "MOV PARAM_" + this.operand1.getAssemblerName() + ", " + regAux + "\n";
+                code += "MOV " + this.paramName + ", " + regAux + "\n";
                 rt.freeReg(regAux);
             }
         }

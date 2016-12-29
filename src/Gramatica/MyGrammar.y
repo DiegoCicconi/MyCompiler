@@ -124,16 +124,21 @@ var_list:                  var_list _COMMA _ID 	{$$ = $3;
 																notify("Found variable declaration: " + $$.toString());}
 									;
 
-function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentScope.pushScope(((SymbolItem)$3).getLex());
+function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{//pusheamos la scope para el contenido de adetro de la funcion
+																													this.currentScope.pushScope(((SymbolItem)$3).getLex());
+																													//le avisamos al manager que estamos adentro de una funcion
 																													this.terManager.inFunction();
 																													((SymbolItem)$5).setScope(this.currentScope.getScope());
 																													Tercet function = new Function($3,$5,this.currentScope.getScope());
 																													function.setIndex(this.terManager.addTercet(function));}
 																								function_body 	{$$ = $3;
+																													//el $8 es el function_body, que recursivamente nos devuelve la sentencia del return
 																													Tercet ret = new Return($3,$8,this.currentScope.getScope());
 																													ret.setIndex(this.terManager.addTercet(ret));
+																													//avisamos que salimos de la funcion y sacamos la Scope del stack
 																													this.terManager.outOfFunction();
 																													this.currentScope.popScope();
+																													//chequeamos que el nombre de la funcion no este usado ya
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
 																													((SymbolItem)$$).setScope(this.currentScope.getScope());
@@ -179,9 +184,11 @@ function:						type _FUNCTION _ID _LPAREN parameter _RPAREN						{this.currentSc
 									;
 
 parameter:						type _FUNCTION _ID _LPAREN _RPAREN									{$$ = $3; 
+																													// comprobamos que exista la funcion del parametro..
 																													((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
 																													((SymbolItem)$$).setArithmeticType(this.currentType);
 																													((SymbolItem)$$).setScope(this.currentScope.getScope());
+																													// ..y que sea del mismo tipo aritmetico
 																													if(!this.symTable.containsArithmetic((SymbolItem)$$)){ 
 																														this.currentLine = ((SymbolItem)$3).getToken().getLine();
 																														yyerror("Function not declared!" , this.currentLine);
@@ -268,6 +275,7 @@ expression:             	expression _PLUS term	{$$ = new Addition($1,$3,"");
 									|
 									_INTTOLONG _LPAREN expression _RPAREN
 									{$$ = $3; 
+									//preguntamos al manager si fueron habilitadas las conversiones
 									if(terManager.conversionAllowed()){$$.setArithmeticType(SymbolItem.ArithmeticType.LONG);}
 									else {yyerror("Conversion not allowed", ((SymbolItem)$1).getToken().getLine());}}
 									;
@@ -284,9 +292,29 @@ term:                      term _MULT factor		{$$ = new Multiplication($1,$3,"")
 factor:                    _ID 						{$$ = $1;
 																((SymbolItem)$$).setSymbolUse(SymbolItem.Use.VAR);
 																((SymbolItem)$$).setScope(this.currentScope.getScope());
+																//getSymnol busca en nuestra Scope y en todas las scopes por encima nuestro
 																SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
 																if(variable == null){ 
-																	yyerror("Variable not declared!" , this.currentLine);
+																	//puede ser la variable que representa una funcion
+																	((SymbolItem)$$).setSymbolUse(SymbolItem.Use.FUNC);
+																	SymbolItem function = this.symTable.getSymbol((SymbolItem)$$);
+																	if(function == null){
+																		//si estamos en una funcion puede ser que estemos buscando un parametro
+																		if(!this.terManager.areWeInFunction())
+																			yyerror("Variable not declared!" , this.currentLine);
+																		else{
+																		//como estamos adentro de una funcion, buscamos si es un parametro
+																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.PARAM);
+																		SymbolItem parameter = this.symTable.getSymbol((SymbolItem)$$);
+																		if(parameter == null)
+																			yyerror("Variable not declared!" , this.currentLine);
+																		else
+																			$$ = parameter;
+																		}
+																	}
+																	else{
+																		$$ = function;
+																	}
 																}
 																else {
 																	$$ = variable;
@@ -301,7 +329,7 @@ factor:                    _ID 						{$$ = $1;
 									|
 									decrement 				{$$ = $1;}
 									|
-									functionCall			{$$ = $1;}
+									functionCall			{yyerror("It is not allow to call a function in an expression");}
 									;
 
 constant:                  _INT 						{this.currentType = SymbolItem.ArithmeticType.INT;}
@@ -315,7 +343,18 @@ decrement:						_ID _MINUS_ONE			{$$ = $1;
 																SymbolItem variable = this.symTable.getSymbol((SymbolItem)$$);
 																if(variable == null){ 
 																	this.currentLine = ((SymbolItem)$1).getToken().getLine();
-																	yyerror("Variable not declared!" , this.currentLine);
+																	//si estamos en una funcion puede ser que estemos buscando un parametro
+																	if(!this.terManager.areWeInFunction())
+																		yyerror("Variable not declared!" , this.currentLine);
+																	else{
+																		//como estamos adentro de una funcion, buscamos si es un parametro
+																		((SymbolItem)$$).setSymbolUse(SymbolItem.Use.PARAM);
+																		SymbolItem parameter = this.symTable.getSymbol((SymbolItem)$$);
+																		if(parameter == null)
+																			yyerror("Variable not declared!" , this.currentLine);
+																		else
+																			$$ = parameter;
+																	}
 																}
 																else {
 																	$$ = variable;
@@ -326,31 +365,33 @@ decrement:						_ID _MINUS_ONE			{$$ = $1;
 
 functionCall:					_ID _LPAREN _RPAREN 			// SIN PARAMETRO
 									{SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
-									Tercet toAdd = new FunctionCall(func,null,this.currentScope.getScope());
+									Tercet toAdd = new FunctionCall(func,null,null,this.currentScope.getScope());
 									toAdd.setIndex(this.terManager.addTercet(toAdd));
 									$$ = toAdd;}
+									/*
 									|
 									_ID _LPAREN expression _RPAREN 			// CON EXPRESION COMO PARAMETRO
 									{SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									Tercet toAdd = new FunctionCall(func,$3,this.currentScope.getScope());
 									this.terManager.addTercet(toAdd);
 									$$ = toAdd;}
-									/*
+									*/
 									|
 									_ID _LPAREN _ID _RPAREN			// CON VARIABLE COMO PARAMETRO
 									{$$ = $1; 
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									SymbolItem var = this.checkVarDeclaration((SymbolItem)$3);
-									Tercet toAdd = new FunctionCall(func,var,this.currentScope.getScope());
+									//buscamos el nombre que tiene el parametro en la declaracion de la funcion
+									String param = this.symTable.getFunctionParam(this.currentScope.getScope());
+									Tercet toAdd = new FunctionCall(func,var,param,this.currentScope.getScope());
 									toAdd.setIndex(this.terManager.addTercet(toAdd));}
 									|
 									_ID _LPAREN _ID _LPAREN _RPAREN _RPAREN	// CON FUNCION COMO PARAMETRO
 									{$$ = $1; 
 									SymbolItem func = this.checkFunctionDeclaration((SymbolItem)$1);
 									SymbolItem param = this.checkFunctionDeclaration((SymbolItem)$3);
-									Tercet toAdd = new FunctionCall(func,param,this.currentScope.getScope());
+									Tercet toAdd = new FunctionCall(func,param,param.getScopedName(),this.currentScope.getScope());
 									toAdd.setIndex(this.terManager.addTercet(toAdd));}
-									*/
 									;
 
 selection:                 if_section _ENDIF						{this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
@@ -413,18 +454,22 @@ sentence_block:     			_LCBRACE executable_sentences _RCBRACE
 									_LCBRACE executable_sentences error {yyerror("Expected '}'");}
 									;
 
-iteration:                 _FOR _LPAREN assignment _SEMICOLON 															{this.iterationJumpDir = this.terManager.getNextIndex();}
+iteration:                 _FOR _LPAREN assignment _SEMICOLON 										{//salvamos la direccion de salto antes de evaluar la condicion
+																														this.iterationJumpDir = this.terManager.getNextIndex();}
 																					condition _SEMICOLON increment _RPAREN sentence_block	
 									{checkControlVars((SymbolItem)$3,(SymbolItem)$8);
+									//ponemos los tercetos del incremento al final de las sentencias del for
 									Tercet incTer = this.incrementTercets.pollFirst();
 									incTer.setIndex(this.terManager.addTercet(incTer));
 										while(!this.incrementTercets.isEmpty()){
 											incTer = this.incrementTercets.pollFirst();
 											incTer.setIndex(this.terManager.addTercet(incTer));
 										}
+									//salto incondicional al final del for hacia la condicion 
 									Tercet newBU = new BranchUnconditional(null,null,this.currentScope.getScope());
 									newBU.setIndex(this.terManager.addTercet(newBU));
 									((JumpTercet)newBU).setJumpDir(this.iterationJumpDir);
+									//completamos con la direccion del salto hacia lo siguiente del for para continuar la ejecucion
 									this.conditionSTK.pop().setJumpDir(this.terManager.getNextIndex());
 									this.currentLine = ((SymbolItem)$1).getToken().getLine();}
 									|

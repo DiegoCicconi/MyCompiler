@@ -28,9 +28,10 @@ public class Addition extends TypedTercet{
             else{
                 this.assemblerName = rt.getFreeReg();
                 code += "MOV " + this.assemblerName + ", " + this.operand1.getAssemblerName() + "\n";
-                code += "ADD " + this.assemblerName + ", " + this.operand2.getAssemblerName();  
+                code += "ADD " + this.assemblerName + ", " + this.operand2.getAssemblerName() + "\n";  
             }
         }
+        code += "JO _errorSuma";
         return code;
     }
 }

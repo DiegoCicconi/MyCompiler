@@ -1,11 +1,26 @@
-programName
+Test
 integer var1;
 longint var2;
 allow integer to longint;
+integer function Holi(integer x){
+	print("Giving power");
+	return x*x;
+}
 {
-var2 := 1;
-var1 := _i2/var2; 
-if(var1 = _i2)
+var2 := _i2;
+Holi(var2);
+var2 := Holi;
+&& var2 ahora es un 4
+if(var2 = _i4)
+  print("var2 es 4");
+endif;
+
+var1 := _i2;
+for(var2 := _i10; var2 > _i0; var2--){
+	&& 10 iteraciones de sumar 2  = +20
+	var1 := var1 + _i2;
+}
+if(var1 = _i22)
   print("TRUE");
 else
   print("FALSE");

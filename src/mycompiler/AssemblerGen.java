@@ -38,7 +38,6 @@ public class AssemblerGen {
 	writer.println("includelib \\masm32\\lib\\masm32.lib");
 	writer.println("");
 	writer.println(".data");
-	writer.println("HelloWorld db \"Hello World!\", 0");
         
         //Carga de la tabla de Simbolos
         ArrayList<SymbolItem> tableOfSymbols = this.symTab.getAll();
@@ -49,7 +48,11 @@ public class AssemblerGen {
                 writer.println(chain + " db \"" + s.getLex()+"\", 0");
                 s.setAssemblerName(chain);
             }
-            if(s.getSymbolUse() == SymbolItem.Use.VAR || s.getSymbolUse() == SymbolItem.Use.FUNC){
+            if(s.getSymbolUse() == SymbolItem.Use.VAR){
+                writer.println(s.getScopedName() + " dw 0");
+                s.setAssemblerName(s.getScopedName());
+            }
+            if(s.getSymbolUse() == SymbolItem.Use.FUNC){
                 writer.println(s.getScopedName() + " dw 0");
                 s.setAssemblerName(s.getScopedName());
             }
@@ -84,19 +87,19 @@ public class AssemblerGen {
             writer.println(functions.get(i).getAssemblerCode(this.regTra,true));
         }
         
-	writer.println("start:\n" +
-        "invoke StdOut, addr HelloWorld");
-	writer.println("invoke StdOut, addr newline");
+	writer.println("\nstart:");
 	
 	/* PROGRAMA */
 	ArrayList<Tercet> program = this.terMan.getProgram();
         for(int i = 0; i < program.size(); i++){
             writer.println(program.get(i).getAssemblerCode(this.regTra,false));
         }
+        // Si existe un salto al final del programa, se crea el ultimo label
         int lastTercet = this.terMan.isNextTercetLabel();
         if(lastTercet != 0){
             writer.println("Label_" + lastTercet + ":");
         }
+        
 	writer.println("JMP _fin");
 	writer.println("_divPorCero:");
 	writer.println("invoke StdOut, addr divCero");

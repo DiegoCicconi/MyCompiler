@@ -18,9 +18,9 @@ public class MyCompiler {
         TercetManager tm = new TercetManager();
         Parser p = new Parser(la,st,tm);
         p.Run();
-        p.getTokensLog().printLogs();
+        //p.getTokensLog().printLogs();
         System.out.println("--------------------------------------");
-        p.getSyntaxStructures().printLogs();
+        //p.getSyntaxStructures().printLogs();
         System.out.println("--------------------------------------");
         la.getWarnings().printLogs();
         System.out.println("--------------------------------------");
@@ -31,7 +31,7 @@ public class MyCompiler {
         tm.printTercets();
         st.printTable();
         AssemblerGen ag = new AssemblerGen(st,tm);
-        ag.assembleAndCompile("hello");
+        ag.assembleAndCompile(filePath);
     }
     
 }

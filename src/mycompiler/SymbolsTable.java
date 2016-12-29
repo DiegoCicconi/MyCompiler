@@ -32,7 +32,18 @@ public class SymbolsTable {
             }
         return null;
     }
-    
+    public String getFunctionParam(String functionParamScope){
+        //nos devuelve el nombre que tiene el parametro en la funcion que nos pasan
+        Collection<SymbolItem> valuesCollection = this.tableOfSymbols.values();
+        for(SymbolItem si: valuesCollection){
+            if(si.getSymbolUse() == SymbolItem.Use.PARAM){
+                String name = si.getScopedName();
+                if(name.contains(functionParamScope))
+                    return "PARAM_" + name;
+            }
+        }  
+        return null;
+    }
     public ArrayList<SymbolItem> getAll(){
         ArrayList<SymbolItem> ret = new ArrayList<>();
         ret.addAll(this.tableOfSymbols.values());
